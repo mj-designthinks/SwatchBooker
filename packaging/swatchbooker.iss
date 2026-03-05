@@ -45,16 +45,19 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; Main application bundle (produced by PyInstaller --onedir)
-Source: "..\dist\SwatchBooker\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; liblcms2.dll (must be present in repo root before building)
-Source: "..\liblcms2.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: FileExists('..\liblcms2.dll')
+; SwatchBooker editor (PyInstaller --onedir output)
+Source: "..\dist\SwatchBooker\*"; DestDir: "{app}\SwatchBooker"; Flags: ignoreversion recursesubdirs createallsubdirs
+; SBConvertor batch converter (PyInstaller --onedir output)
+Source: "..\dist\SBConvertor\*";  DestDir: "{app}\SBConvertor";  Flags: ignoreversion recursesubdirs createallsubdirs
+; liblcms2.dll — copy into both app directories (must be in repo root before building)
+Source: "..\liblcms2.dll"; DestDir: "{app}\SwatchBooker"; Flags: ignoreversion; Check: FileExists('..\liblcms2.dll')
+Source: "..\liblcms2.dll"; DestDir: "{app}\SBConvertor";  Flags: ignoreversion; Check: FileExists('..\liblcms2.dll')
 
 [Icons]
-Name: "{group}\{#AppName}";          Filename: "{app}\{#AppExeName}"
-Name: "{group}\SB Convertor";        Filename: "{app}\SBConvertor.exe"
-Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#AppName}";    Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
+Name: "{group}\{#AppName}";                        Filename: "{app}\SwatchBooker\{#AppExeName}"
+Name: "{group}\SB Convertor";                      Filename: "{app}\SBConvertor\SBConvertor.exe"
+Name: "{group}\{cm:UninstallProgram,{#AppName}}";  Filename: "{uninstallexe}"
+Name: "{autodesktop}\{#AppName}";                  Filename: "{app}\SwatchBooker\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\SwatchBooker\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
