@@ -2,24 +2,23 @@
 # coding: utf-8
 #
 #       Copyright 2008 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class adobe_ase(SBCodec):
@@ -30,7 +29,7 @@ class adobe_ase(SBCodec):
 		file = open(file,'rb')
 		data = file.read(4)
 		file.close()
-		if data == 'ASEF':
+		if data == b'ASEF':
 			return True
 		else:
 			return False
@@ -48,7 +47,7 @@ class adobe_ase(SBCodec):
 			if block_size > 0:
 				length = struct.unpack('>H',file.read(2))[0]
 				if length > 0:
-					id = unicode(struct.unpack(str(length*2)+'s',file.read(length*2))[0],'utf_16_be').split('\x00', 1)[0]
+					id = struct.unpack(str(length*2)+'s',file.read(length*2))[0].decode('utf_16_be').split('\x00', 1)[0]
 			if block_type == 0xc001:
 				item = Group()
 				if id:
@@ -59,7 +58,7 @@ class adobe_ase(SBCodec):
 				parent = swatchbook.book
 			elif block_type == 0x0001:
 				item = Color(swatchbook)
-				model = struct.unpack('4s',file.read(4))[0]
+				model = struct.unpack('4s',file.read(4))[0].decode('ascii')
 				if model == "CMYK":
 					item.values[('CMYK',False)] = list(struct.unpack('>4f',file.read(16)))
 				elif model == "RGB ":
@@ -75,15 +74,15 @@ class adobe_ase(SBCodec):
 				elif type == 1:
 					item.usage.add('spot')
 				if not id or id == '':
-					id = idfromvals(item.values[item.values.keys()[0]])
+					id = idfromvals(item.values[list(item.values.keys())[0]])
 				if id in swatchbook.materials:
-					if item.values[item.values.keys()[0]] == swatchbook.materials[id].values[swatchbook.materials[id].values.keys()[0]]:
+					if item.values[list(item.values.keys())[0]] == swatchbook.materials[id].values[list(swatchbook.materials[id].values.keys())[0]]:
 						parent.items.append(Swatch(id))
 						continue
 					else:
 						sys.stderr.write('duplicated id: '+id+'\n')
 						item.info.title = id
-						id = id+idfromvals(item.values[item.values.keys()[0]])
+						id = id+idfromvals(item.values[list(item.values.keys())[0]])
 				item.info.identifier = id
 				swatchbook.materials[id] = item
 				parent.items.append(Swatch(id))
@@ -91,29 +90,29 @@ class adobe_ase(SBCodec):
 
 	@staticmethod
 	def write(swatchbook):
-		ase = 'ASEF\x00\x01\x00\x00'
+		ase = b'ASEF\x00\x01\x00\x00'
 		nbblocks,content = adobe_ase.writem(swatchbook,swatchbook.book.items)
 		ase += struct.pack('>L',nbblocks)+content
 		return ase
 
 	@staticmethod
 	def writem(swatchbook,items,nbblocks=0):
-		ase_tmp = ''
+		ase_tmp = b''
 		for item in items:
 			block_size = 0
-			name = ''
+			name = b''
 			name_txt = False
 			if isinstance(item,Group):
 				if item.info.title > '':
 					name_txt = item.info.title
 				if name_txt:
 					block_size += 4+len(name_txt)*2
-					name = struct.pack('>H',len(name_txt)+1)+name_txt.encode('utf_16_be')+'\x00\x00'
+					name = struct.pack('>H',len(name_txt)+1)+name_txt.encode('utf_16_be')+b'\x00\x00'
 				nbblocks += 2
-				ase_tmp += '\xc0\x01'+struct.pack('>L',block_size)+name
+				ase_tmp += b'\xc0\x01'+struct.pack('>L',block_size)+name
 				nbblocks,content_tmp = adobe_ase.writem(swatchbook,item.items,nbblocks)
 				ase_tmp += content_tmp
-				ase_tmp += '\xc0\x02'+'\x00\x00\x00\x00'
+				ase_tmp += b'\xc0\x02'+b'\x00\x00\x00\x00'
 			elif isinstance(item,Swatch):
 				item = swatchbook.materials[item.material]
 				if item.info.title > '':
@@ -122,46 +121,46 @@ class adobe_ase(SBCodec):
 					name_txt = item.info.identifier
 				if name_txt:
 					block_size += 4+len(name_txt)*2
-					name = struct.pack('>H',len(name_txt)+1)+name_txt.encode('utf_16_be')+'\x00\x00'
+					name = struct.pack('>H',len(name_txt)+1)+name_txt.encode('utf_16_be')+b'\x00\x00'
 				if isinstance(item,Color):
 					nbblocks += 1
 					block_size += 6
 					if 'spot' in item.usage:
-						usage = '\x00\x01'
+						usage = b'\x00\x01'
 					elif 'global' in item.usage:
-						usage = '\x00\x00'
+						usage = b'\x00\x00'
 					else:
-						usage = '\x00\x02'
+						usage = b'\x00\x02'
 					values = unicc(item.values)
 					if 'Lab' in values:
 						L,a,b = values['Lab']
 						block_size += 12
-						values = 'LAB '+struct.pack('>3f',L/100,a,b)
+						values = b'LAB '+struct.pack('>3f',L/100,a,b)
 					elif 'CMYK' in values:
 						C,M,Y,K = values['CMYK']
 						block_size += 16
-						values = 'CMYK'+struct.pack('>4f',C,M,Y,K)
+						values = b'CMYK'+struct.pack('>4f',C,M,Y,K)
 					elif 'GRAY' in values:
 						Gray = values['GRAY'][0]
 						block_size += 4
-						values = 'Gray'+struct.pack('>f',1-Gray)
+						values = b'Gray'+struct.pack('>f',1-Gray)
 					elif 'XYZ' in values:
 						X,Y,Z = values['XYZ']
 						L,a,b = XYZ2Lab(X,Y,Z)
 						block_size += 12
-						values = 'LAB '+struct.pack('>3f',L/100,a,b)
+						values = b'LAB '+struct.pack('>3f',L/100,a,b)
 					elif 'LCH' in values:
 						L,C,H = values['LCH']
 						L,a,b = LCH2Lab(L,C,H)
 						block_size += 12
-						values = 'LAB '+struct.pack('>3f',L/100,a,b)
+						values = b'LAB '+struct.pack('>3f',L/100,a,b)
 					elif item.toRGB():
 						R,G,B = item.toRGB()
 						block_size += 12
-						values = 'RGB '+struct.pack('>3f',R,G,B)
+						values = b'RGB '+struct.pack('>3f',R,G,B)
 					else:
-						values = ''
-					ase_tmp += '\x00\x01'+struct.pack('>L',block_size)+name+values+usage
+						values = b''
+					ase_tmp += b'\x00\x01'+struct.pack('>L',block_size)+name+values+usage
 
 		return nbblocks,ase_tmp
 
