@@ -19,7 +19,6 @@
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.websvc import *
 
 class munsell(WebSvc):
@@ -41,7 +40,7 @@ class munsell(WebSvc):
 		return self.palettes
 
 	def read(self,swatchbook,palette):
-		file = urlopen(self.url+palette+'.dat').readlines()[1:]
+		file = [l.decode('utf-8', errors='replace') for l in urlopen(self.url+palette+'.dat').readlines()[1:]]
 		swatchbook.info.title = "Munsell - "+self.palettes[palette]
 		cp = False
 		cols = 0
