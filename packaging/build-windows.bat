@@ -31,8 +31,11 @@ if not exist liblcms2.dll (
     echo          Continuing build - the app will NOT render CMYK without it.
 )
 
-echo =^> Running PyInstaller
+echo =^> Running PyInstaller - SwatchBooker
 pyinstaller packaging\swatchbooker.spec --noconfirm
+
+echo =^> Running PyInstaller - SBConvertor
+pyinstaller packaging\sbconvertor.spec --noconfirm
 
 echo =^> Running Inno Setup
 set ISCC="C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
@@ -46,5 +49,5 @@ echo Done: dist\SwatchBooker-Setup.exe
 echo.
 echo Smoke test:
 echo   1. Run dist\SwatchBooker-Setup.exe on a clean machine ^(no Python^)
-echo   2. Launch SwatchBooker from Start Menu
-echo   3. File ^> Open ^> data\sample.sbz - verify CMYK swatch renders
+echo   2. Launch SwatchBooker from Start Menu - File ^> Open ^> data\sample.sbz, verify CMYK renders
+echo   3. Launch SBConvertor from Start Menu - verify batch converter opens
