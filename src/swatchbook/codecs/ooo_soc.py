@@ -26,8 +26,11 @@ class ooo_soc(SBCodec):
 	ext = ('soc',)
 	@staticmethod
 	def test(file):
-		if etree.parse(file).getroot().tag in ('{http://openoffice.org/2000/office}color-table','{http://openoffice.org/2004/office}color-table'):
-			return True
+		try:
+			if etree.parse(file).getroot().tag in ('{http://openoffice.org/2000/office}color-table','{http://openoffice.org/2004/office}color-table'):
+				return True
+		except etree.ParseError:
+			pass
 		else:
 			return False
 
@@ -64,7 +67,7 @@ class ooo_soc(SBCodec):
 	@staticmethod
 	def write(swatchbook):
 		soc = '<?xml version="1.0" encoding="UTF-8"?>\n<ooo:color-table xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svg="http://www.w3.org/2000/svg" xmlns:ooo="http://openoffice.org/2004/office">'
-		soc += ooo.writem(swatchbook,swatchbook.book.items)
+		soc += ooo_soc.writem(swatchbook,swatchbook.book.items)
 		soc += '</ooo:color-table>'
 		return soc.encode('utf-8')
 
@@ -83,6 +86,6 @@ class ooo_soc(SBCodec):
 						name_txt = item.info.identifier
 					soc += '<draw:color draw:name="'+xmlescape(name_txt)+'" draw:color="'+rgb+'"/>'
 			elif isinstance(item,Group):
-				soc += ooo.writem(swatchbook,item.items)
+				soc += ooo_soc.writem(swatchbook,item.items)
 		return soc
 
