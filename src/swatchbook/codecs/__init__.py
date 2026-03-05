@@ -23,6 +23,7 @@ import os
 import sys
 import struct
 import importlib
+import pkgutil
 import xml.etree.ElementTree as etree
 from xml.sax.saxutils import escape as xmlescape
 from xml.sax.saxutils import unescape as xmlunescape
@@ -52,9 +53,9 @@ class SBCodec(object):
 	read = False
 	write = False
 
-for codec in os.listdir((dirpath(__file__) or ".")):
-	if os.path.splitext(codec)[1] == '.py' and codec not in ('__init__.py','template.py'):
-		_mod = importlib.import_module('swatchbook.codecs.' + os.path.splitext(codec)[0])
+for _importer, _modname, _ispkg in pkgutil.iter_modules(__path__):
+	if _modname not in ('template',):
+		_mod = importlib.import_module('swatchbook.codecs.' + _modname)
 		globals().update({k: v for k, v in vars(_mod).items() if not k.startswith('_')})
 
 writes = []
