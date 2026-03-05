@@ -19,14 +19,14 @@
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
-from urllib import quote_plus,unquote_plus,urlencode,urlretrieve
-from urllib2 import urlopen,Request
-import xml.etree.cElementTree as etree
+from urllib.parse import quote_plus, unquote_plus, urlencode
+from urllib.request import urlopen, Request, urlretrieve
+import importlib
+import xml.etree.ElementTree as etree
 from xml.sax.saxutils import escape as xmlescape
 from xml.sax.saxutils import unescape as xmlunescape
 from swatchbook import *
-from string import *
+import string
 from swatchbook.codecs import idfromvals
 
 class WebSvc(object):
@@ -34,7 +34,8 @@ class WebSvc(object):
 
 for websvc in os.listdir((dirpath(__file__) or ".")):
 	if os.path.splitext(websvc)[1] == '.py' and websvc not in ('__init__.py','template.py'):
-		exec 'from '+os.path.splitext(websvc)[0]+' import *'
+		_mod = importlib.import_module('swatchbook.websvc.' + os.path.splitext(websvc)[0])
+		globals().update({k: v for k, v in vars(_mod).items() if not k.startswith('_')})
 
 members = {}
 
