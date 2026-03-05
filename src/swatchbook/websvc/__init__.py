@@ -22,6 +22,7 @@
 from urllib.parse import quote_plus, unquote_plus, urlencode
 from urllib.request import urlopen, Request, urlretrieve
 import importlib
+import pkgutil
 import xml.etree.ElementTree as etree
 from xml.sax.saxutils import escape as xmlescape
 from xml.sax.saxutils import unescape as xmlunescape
@@ -32,9 +33,9 @@ from swatchbook.codecs import idfromvals
 class WebSvc(object):
 	about = False
 
-for websvc in os.listdir((dirpath(__file__) or ".")):
-	if os.path.splitext(websvc)[1] == '.py' and websvc not in ('__init__.py','template.py'):
-		_mod = importlib.import_module('swatchbook.websvc.' + os.path.splitext(websvc)[0])
+for _importer, _modname, _ispkg in pkgutil.iter_modules(__path__):
+	if _modname not in ('template',):
+		_mod = importlib.import_module('swatchbook.websvc.' + _modname)
 		globals().update({k: v for k, v in vars(_mod).items() if not k.startswith('_')})
 
 members = {}
