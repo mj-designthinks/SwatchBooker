@@ -2,24 +2,23 @@
 # coding: utf-8
 #
 #       Copyright 2010 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class DescriptorParser:
@@ -30,11 +29,11 @@ class DescriptorParser:
 		length = struct.unpack('>L',self.file.read(4))[0]
 		if length == 0:
 			length = 4
-		return self.file.read(length)
+		return self.file.read(length).decode('ascii')
 
 	def readUnicodeString(self):
 		length = struct.unpack('>L',self.file.read(4))[0]
-		string = unicode(self.file.read(length*2),'utf_16_be').split('\x00')[0]
+		string = self.file.read(length*2).decode('utf_16_be').split('\x00')[0]
 		if string[0:4] == '$$$/':
 			string = string.partition('=')[2]
 		return string.replace('^C',u'©').replace('^R',u'®')
@@ -54,12 +53,12 @@ class DescriptorParser:
 		return (typeID,enum)
 
 	def readUnitFloat(self):
-		unit = self.file.read(4)
+		unit = self.file.read(4).decode('ascii')
 		value = struct.unpack('>d',self.file.read(8))[0]
 		return (unit,value)
 
 	def readOSType(self):
-		OSType = self.file.read(4)
+		OSType = self.file.read(4).decode('ascii')
 		if OSType == 'VlLs':
 			item = self.readList()
 		elif OSType == 'TEXT':
@@ -106,7 +105,7 @@ class adobe_grd(SBCodec):
 		file = open(file,'rb')
 		data = file.read(4)
 		file.close()
-		if data == '8BGR':
+		if data == b'8BGR':
 			return True
 		else:
 			return False
@@ -122,7 +121,7 @@ class adobe_grd(SBCodec):
 			for i in range(nbgradients):
 				item = Gradient(swatchbook)
 				name_length = struct.unpack('B',file.read(1))[0]
-				name = file.read(name_length)
+				name = file.read(name_length).decode('latin-1')
 				nbstops = struct.unpack('>H',file.read(2))[0]
 				for j in range(nbstops):
 					stop = ColorStop()
@@ -156,7 +155,7 @@ class adobe_grd(SBCodec):
 					else:
 						file.seek(8, 1)
 						sys.stderr.write('unsupported color model ['+ColorModels[model]+']\n')
-					colorid = idfromvals(color.values[color.values.keys()[0]])
+					colorid = idfromvals(color.values[list(color.values.keys())[0]])
 					type = struct.unpack('>H',file.read(2))[0]
 					if type != 0:
 						colorid = ColorTypes[type]
@@ -253,7 +252,7 @@ class adobe_grd(SBCodec):
 							colorid = 'Background color'
 							color.values[('sRGB',False)] = [1,1,1]
 						if not colorid:
-							colorid = idfromvals(color.values[color.values.keys()[0]])
+							colorid = idfromvals(color.values[list(color.values.keys())[0]])
 						if not colorid in swatchbook.materials:
 							color.info.identifier = colorid
 							swatchbook.materials[colorid] = color
