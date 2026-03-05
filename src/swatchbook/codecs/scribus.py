@@ -2,24 +2,23 @@
 # coding: utf-8
 #
 #       Copyright 2008 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class scribus(SBCodec):
@@ -36,12 +35,12 @@ class scribus(SBCodec):
 	def read(swatchbook,file):
 		xml = etree.parse(file).getroot()
 		if 'Name' in xml.attrib:
-			swatchbook.info.title = xmlunescape(unicode(xml.attrib['Name']))
+			swatchbook.info.title = xmlunescape(str(xml.attrib['Name']))
 
 		for elem in xml:
 			if elem.tag == 'COLOR':
 				item = Color(swatchbook)
-				id = unicode(xmlunescape(elem.attrib['NAME']))
+				id = str(xmlunescape(elem.attrib['NAME']))
 				if "RGB" in elem.attrib:
 					rgb = elem.attrib['RGB']
 					item.values[('RGB',False)] = [int(rgb[1:3],16)/0xFF,int(rgb[3:5],16)/0xFF,int(rgb[5:],16)/0xFF]
@@ -52,7 +51,7 @@ class scribus(SBCodec):
 					item.usage.add('spot')
 			elif elem.tag == 'Gradient':
 				item = Gradient(swatchbook)
-				id = unicode(xmlunescape(elem.attrib['Name']))
+				id = str(xmlunescape(elem.attrib['Name']))
 				opstops = []
 				for stops in elem:
 					if stops.tag == 'CSTOP':
@@ -81,15 +80,15 @@ class scribus(SBCodec):
 							item.opacitystops.append(stop)
 
 			if not id or id == '':
-				id = idfromvals(item.values[item.values.keys()[0]])
+				id = idfromvals(item.values[list(item.values.keys())[0]])
 			if id in swatchbook.materials:
-				if item.values[item.values.keys()[0]] == swatchbook.materials[id].values[swatchbook.materials[id].values.keys()[0]]:
+				if item.values[list(item.values.keys())[0]] == swatchbook.materials[id].values[list(swatchbook.materials[id].values.keys())[0]]:
 					swatchbook.book.items.append(Swatch(id))
 					continue
 				else:
 					sys.stderr.write('duplicated id: '+id+'\n')
 					item.info.title = id
-					id = id+idfromvals(item.values[item.values.keys()[0]])
+					id = id+idfromvals(item.values[list(item.values.keys())[0]])
 			item.info.identifier = id
 			swatchbook.materials[id] = item
 			swatchbook.book.items.append(Swatch(id))
