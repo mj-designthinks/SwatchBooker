@@ -20,9 +20,9 @@
 #
 
 import gettext
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
 from multiprocessing import Pool 
 
 from swatchbook import *
@@ -43,16 +43,16 @@ def translate_sb(app,settings,main_globals):
 			lang = gettext.translation('swatchbooker', None, languages=[str(locale)])
 		lang.install()
 		def _(msgid):
-			return lang.gettext(msgid).decode('utf-8')
+			return lang.gettext(msgid)
 
 		def n_(msgid0,msgid1,n):
-			return lang.ngettext(msgid0,msgid1,n).decode('utf-8')
+			return lang.ngettext(msgid0,msgid1,n)
 	except IOError:
 		def _(msgid):
-			return gettext.gettext(msgid).decode('utf-8')
+			return gettext.gettext(msgid)
 
 		def n_(msgid0,msgid1,n):
-			return gettext.ngettext(msgid0,msgid1,n).decode('utf-8')
+			return gettext.ngettext(msgid0,msgid1,n)
 
 	main_globals['_'] = _
 	main_globals['n_'] = n_
@@ -61,7 +61,7 @@ def translate_sb(app,settings,main_globals):
 
 	# translation of the built-in dialogs
 	qtTranslator = QTranslator()
-	if qtTranslator.load("qt_" + locale, QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
+	if qtTranslator.load("qt_" + locale, QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
 		app.installTranslator(qtTranslator)
 
 class webOpenDlg(QDialog):
@@ -77,7 +77,7 @@ class webOpenDlg(QDialog):
 		self.webSvcStack = QStackedWidget()
 		self.webSvcList = QListWidget(self)
 		palette = self.webSvcList.palette()
-		palette.setColor(QPalette.Base,Qt.transparent)
+		palette.setColor(QPalette.ColorRole.Base,Qt.transparent)
 		self.webSvcList.setPalette(palette)
 		self.webSvcList.setFrameShape(QFrame.NoFrame)
 		aboutBox = QGroupBox(_("About"))
@@ -98,9 +98,9 @@ class webOpenDlg(QDialog):
 				continue
 			self.webSvcStack.addWidget(webWidget)
 			listItem = QListWidgetItem(websvc.members[svc],self.webSvcList)
-			listItem.setData(Qt.UserRole,svc)
+			listItem.setData(Qt.ItemDataRole.UserRole,svc)
 			self.webWidgets[svc] = (webWidget,current_svc.about,listItem)
-		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+		buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel)
 		self.webSvcList.sortItems()
 		if settings.contains('lastWebSvc') and str(settings.value('lastWebSvc')) in self.webWidgets:
 			self.webSvcList.setCurrentItem(self.webWidgets[str(settings.value('lastWebSvc'))][2])
@@ -117,8 +117,8 @@ class webOpenDlg(QDialog):
 		web1.setLayout(web1l)
 
 		webl = QGridLayout()
-		webl.addWidget(web1,0,0,Qt.AlignTop)
-		webl.addWidget(aboutBox,0,1,Qt.AlignTop)
+		webl.addWidget(web1,0,0,Qt.AlignmentFlag.AlignTop)
+		webl.addWidget(aboutBox,0,1,Qt.AlignmentFlag.AlignTop)
 		webl.addWidget(buttonBox,1,0,1,3)
 		self.setLayout(webl)
 
@@ -131,13 +131,13 @@ class webOpenDlg(QDialog):
 		buttonBox.rejected.connect(self.reject)
 
 	def changeTab(self):
-		self.svc = str(self.webSvcList.selectedItems()[0].data(Qt.UserRole))
+		self.svc = str(self.webSvcList.selectedItems()[0].data(Qt.ItemDataRole.UserRole))
 		self.ids = False
 		self.webSvcStack.setCurrentWidget(self.webWidgets[self.svc][0])
 		self.about.setText(self.webWidgets[self.svc][1])
 		self.webSvcStack.currentWidget().load()
-		self.webSvcList.setCurrentItem(self.webSvcList.selectedItems()[0],QItemSelectionModel.Current)
-		self.settings.setValue('lastWebSvc',QVariant(self.svc))
+		self.webSvcList.setCurrentItem(self.webSvcList.selectedItems()[0],QItemSelectionModel.SelectionFlag.Current)
+		self.settings.setValue('lastWebSvc',self.svc)
 
 class webWidgetList(QTreeWidget):
 	def __init__(self, svc, parent=None):
@@ -149,7 +149,7 @@ class webWidgetList(QTreeWidget):
 		self.setColumnHidden(1,True)
 		self.setFrameShape(QFrame.NoFrame)
 		if parent.multi:
-			self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+			self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 		self.itemSelectionChanged.connect(self.activate)
 		self.itemExpanded.connect(self.nextLevel)
 
@@ -170,21 +170,21 @@ class webWidgetList(QTreeWidget):
 				if isinstance(root[item],SortedDict):
 					pitemtext = [item]
 					pitem = QTreeWidgetItem(self, pitemtext)
-					pitem.setFlags(pitem.flags() & ~(Qt.ItemIsSelectable))
+					pitem.setFlags(pitem.flags() & ~(Qt.ItemFlag.ItemIsSelectable))
 					for sitem in root[item]:
 						if sitem == 0:
 							continue
 						itemtext = [root[item][sitem], str(sitem)]
 						titem = QTreeWidgetItem(pitem,itemtext)
 						if self.svc.nbLevels > 1:
-							titem.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-							titem.setFlags(titem.flags() & ~(Qt.ItemIsSelectable))
+							titem.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)
+							titem.setFlags(titem.flags() & ~(Qt.ItemFlag.ItemIsSelectable))
 				else:
 					itemtext = [root[item], item]
 					titem = QTreeWidgetItem(self,itemtext)
 					if self.svc.nbLevels > 1:
-						titem.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-						titem.setFlags(titem.flags() & ~(Qt.ItemIsSelectable))
+						titem.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)
+						titem.setFlags(titem.flags() & ~(Qt.ItemFlag.ItemIsSelectable))
 			self.loaded = True
 
 	def nextLevel(self,treeItem):
@@ -199,8 +199,8 @@ class webWidgetList(QTreeWidget):
 				itemtext = [llist[item], item]
 				titem = QTreeWidgetItem(treeItem,itemtext)
 				if self.svc.nbLevels > level+1:
-					titem.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-					titem.setFlags(titem.flags() & ~(Qt.ItemIsSelectable))
+					titem.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)
+					titem.setFlags(titem.flags() & ~(Qt.ItemFlag.ItemIsSelectable))
 
 qt_resource_data = "\
 \x00\x00\x2d\x5c\
