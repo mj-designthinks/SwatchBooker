@@ -39,9 +39,9 @@ class MainWindow(QMainWindow):
 		self.list.verticalHeader().hide()
 		self.list.horizontalHeader().hide()
 		self.list.setColumnCount(2)
-		self.list.setEditTriggers(QAbstractItemView.NoEditTriggers)
-		self.list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-		self.list.setSelectionBehavior(QAbstractItemView.SelectRows)
+		self.list.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+		self.list.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+		self.list.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 		self.list.setColumnWidth(0,32)
 		self.list.setShowGrid(False)
 
@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
 
 		self.pathLabel = QLabel(self.path)
 		self.pathLabel.setFrameStyle(QFrame.StyledPanel|
-										 QFrame.Sunken)
+										 QFrame.Shadow.Sunken)
 		self.pathButton = QPushButton(_("Choose output directory"))
 
 		outputLayout = QHBoxLayout()
@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
 		if settings.contains('lastOpenCodec'):
 			filetype = settings.value('lastOpenCodec')
 		else:
-			filetype = QString()
+			filetype = ""
 		flist = QFileDialog.getOpenFileNames(self,
 							_("Add files"), dir,
 							(_("All supported files (%s)") % " ".join(allexts))+";;"+(";;".join(sorted(filetypes)))+";;"+_("All files (*)"),filetype)[0]
@@ -174,7 +174,7 @@ class MainWindow(QMainWindow):
 	def webOpen(self):
 		try:
 			dialog = webOpenDlg(self,settings,True)
-			if dialog.exec_() and dialog.svc and dialog.ids:
+			if dialog.exec() and dialog.svc and dialog.ids:
 				self.tobeadded += len(dialog.ids)
 				self.progress.setMaximum(self.tobeadded)
 				self.progress.setValue(self.added)
@@ -245,12 +245,12 @@ class MainWindow(QMainWindow):
 		self.pathButton.setEnabled(False)
 		self.formatCombo.setEnabled(False)
 		self.repaint()
-		self.setCursor(Qt.WaitCursor)
+		self.setCursor(Qt.CursorShape.WaitCursor)
 		thread.start()
 
 	def converted(self,index):
 		iconWidget = QLabel()
-		iconWidget.setAlignment(Qt.AlignCenter)
+		iconWidget.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 		iconWidget.setPixmap(app.style().standardIcon(QStyle.SP_DialogOkButton).pixmap(64))
 		self.list.setCellWidget(index,0,iconWidget)
 
@@ -264,7 +264,7 @@ class MainWindow(QMainWindow):
 #		self.list.setCurrentRow(-1)
 
 class fileOpenThread(QThread):
-	added = pyqtSignal(int)
+	added = Signal(int)
 
 	def __init__(self, fname, parent = None):
 		super(fileOpenThread, self).__init__(parent)
@@ -280,7 +280,7 @@ class fileOpenThread(QThread):
 			pass
 
 class webOpenThread(QThread):
-	added = pyqtSignal()
+	added = Signal()
 
 	def __init__(self, svc, id, parent = None):
 		super(webOpenThread, self).__init__(parent)
@@ -293,7 +293,7 @@ class webOpenThread(QThread):
 		self.added.emit()
 
 class convertThread(QThread):
-	converted = pyqtSignal(int)
+	converted = Signal(int)
 
 	def __init__(self, path, codec, parent = None):
 		super(convertThread, self).__init__(parent)
@@ -326,4 +326,4 @@ if __name__ == "__main__":
 	form = MainWindow()
 	form.show()
 
-	app.exec_()
+	app.exec()
