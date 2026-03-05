@@ -35,13 +35,18 @@ rm -rf "$ICONSET"
 echo "    data/swatchbooker.icns created"
 
 echo "==> Running PyInstaller — SwatchBooker"
-pyinstaller packaging/swatchbooker.spec --noconfirm
+uv run pyinstaller packaging/swatchbooker.spec --noconfirm
 
 echo "==> Running PyInstaller — SBConvertor"
-pyinstaller packaging/sbconvertor.spec --noconfirm
+uv run pyinstaller packaging/sbconvertor.spec --noconfirm
+
+echo "==> Stripping extended attributes from .app bundles"
+xattr -cr dist/SwatchBooker.app
+xattr -cr dist/SBConvertor.app
 
 echo "==> Building DMG (both apps)"
 # Stage both .app bundles into a clean folder for create-dmg
+rm -f dist/SwatchBooker.dmg
 rm -rf dist/dmg-stage
 mkdir dist/dmg-stage
 cp -r dist/SwatchBooker.app dist/dmg-stage/
