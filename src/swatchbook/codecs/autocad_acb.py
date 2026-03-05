@@ -2,24 +2,23 @@
 # coding: utf-8
 #
 #       Copyright 2008 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class autocad_acb(SBCodec):
@@ -35,25 +34,25 @@ class autocad_acb(SBCodec):
 	@staticmethod
 	def read(swatchbook,file):
 		xml = etree.parse(file).getroot()
-		swatchbook.info.title = unicode(list(xml.getiterator('bookName'))[0].text)
-		if len(list(xml.getiterator('majorVersion'))) > 0:
-			swatchbook.info.version = list(xml.getiterator('majorVersion'))[0].text+'.'+list(xml.getiterator('minorVersion'))[0].text
-		nbcolors = len(list(xml.getiterator('colorEntry')))
-		for colorPage in xml.getiterator('colorPage'):
-			swatchbook.book.display['columns'] = max(swatchbook.book.display['columns'],len(list(colorPage.getiterator('colorEntry'))))
+		swatchbook.info.title = str(list(xml.iter('bookName'))[0].text)
+		if len(list(xml.iter('majorVersion'))) > 0:
+			swatchbook.info.version = list(xml.iter('majorVersion'))[0].text+'.'+list(xml.iter('minorVersion'))[0].text
+		nbcolors = len(list(xml.iter('colorEntry')))
+		for colorPage in xml.iter('colorPage'):
+			swatchbook.book.display['columns'] = max(swatchbook.book.display['columns'],len(list(colorPage.iter('colorEntry'))))
 		encrypted = False
 		i = 0
-		for colorPage in xml.getiterator('colorPage'):
-			for colorEntry in colorPage.getiterator('colorEntry'):
+		for colorPage in xml.iter('colorPage'):
+			for colorEntry in colorPage.iter('colorEntry'):
 				item = Color(swatchbook)
 				if colorEntry.find('RGB8Encrypt'):
 					encrypted = True
 				elif colorEntry.find('RGB8'):
 					item.values[('RGB',False)] = [eval(colorEntry.find('RGB8').find('red').text)/0xFF,eval(colorEntry.find('RGB8').find('green').text)/0xFF,eval(colorEntry.find('RGB8').find('blue').text)/0xFF]
 				item.usage.add('spot')
-				id = unicode(colorEntry.find('colorName').text)
+				id = str(colorEntry.find('colorName').text)
 				if id in swatchbook.materials:
-					if len(item.values) > 0 and item.values[item.values.keys()[0]] == swatchbook.materials[id].values[swatchbook.materials[id].values.keys()[0]]:
+					if len(item.values) > 0 and item.values[list(item.values.keys())[0]] == swatchbook.materials[id].values[list(swatchbook.materials[id].values.keys())[0]]:
 						swatchbook.book.items.append(Swatch(id))
 						i += 1
 						continue
@@ -65,7 +64,7 @@ class autocad_acb(SBCodec):
 				swatchbook.materials[id] = item
 				swatchbook.book.items.append(Swatch(id))
 				i += 1
-			if len(list(colorPage.getiterator('colorEntry'))) < swatchbook.book.display['columns'] and i<nbcolors:
+			if len(list(colorPage.iter('colorEntry'))) < swatchbook.book.display['columns'] and i<nbcolors:
 				swatchbook.book.items.append(Break())
 		if encrypted:
 			sys.stderr.write(file+": this script can't decode encrypted RGB values\n")
