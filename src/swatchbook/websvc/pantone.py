@@ -19,7 +19,6 @@
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.websvc import *
 
 class pantone(WebSvc):
@@ -81,28 +80,28 @@ class pantone(WebSvc):
 		return guides
 
 	def read(self,swatchbook,guide):
-		page = urlopen(self.url+'xref_lib'+guide+'.js').readlines()
-		swatchbook.info.title = u'PANTONE® '+self.guide[guide]
+		page = [l.decode('utf-8', errors='replace') for l in urlopen(self.url+'xref_lib'+guide+'.js').readlines()]
+		swatchbook.info.title = 'PANTONE® '+self.guide[guide]
 		for line in page[1:]:
 			if line.strip() > '':
 				line = line.split('"')[1].split(',')
 				item = Color(swatchbook)
 				item.usage.add('spot')
-				id = unicode(line[1])
-				item.info.title = u'PANTONE® '+id
+				id = str(line[1])
+				item.info.title = 'PANTONE® '+id
 				item.values[('Lab',False)] = [eval(line[2]),eval(line[3]),eval(line[4])]
 				item.values[('sRGB',False)] = [eval(line[6])/0xFF,eval(line[7])/0xFF,eval(line[8])/0xFF]
 				if line[13] == '1':
 					item.values[('CMYK',False)] = [eval(line[9])/100,eval(line[10])/100,eval(line[11])/100,eval(line[12])/100]
-	
+
 				if id in swatchbook.materials:
-					if item.values[item.values.keys()[0]] == swatchbook.materials[id].values[swatchbook.materials[id].values.keys()[0]]:
+					if item.values[next(iter(item.values))] == swatchbook.materials[id].values[next(iter(swatchbook.materials[id].values))]:
 						swatchbook.book.items.append(Swatch(id))
 						continue
 					else:
 						sys.stderr.write('duplicated id: '+id+'\n')
 						item.info.title = id
-						id = id+idfromvals(item.values[item.values.keys()[0]])
+						id = id+idfromvals(item.values[next(iter(item.values))])
 				item.info.identifier = id
 				swatchbook.materials[id] = item
 				swatchbook.book.items.append(Swatch(id))
