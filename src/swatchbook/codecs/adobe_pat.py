@@ -2,33 +2,32 @@
 # coding: utf-8
 #
 #       Copyright 2010 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class PSDImage:
 	def __init__(self):
-		self.header = '8BPS\x00\x01\x00\x00\x00\x00\x00\x00'
-		self.colorModeData = "\x00\x00\x00\x00"
-		self.imageResources = "\x00\x00\x00\x00"
-		self.layerAndMask = "\x00\x00\x00\x00"
-		self.imageData = ""
+		self.header = b'8BPS\x00\x01\x00\x00\x00\x00\x00\x00'
+		self.colorModeData = b"\x00\x00\x00\x00"
+		self.imageResources = b"\x00\x00\x00\x00"
+		self.layerAndMask = b"\x00\x00\x00\x00"
+		self.imageData = b""
 
 	def addHeader(self,nbchannels,width,height,depth,mode):
 		self.header += struct.pack('>H 2L 2H',nbchannels,height,width,depth,mode)
@@ -37,10 +36,10 @@ class PSDImage:
 		self.height = height
 
 	def addColorModeData(self,data):
-		self.colorModeData = '\x00\x00\x03\x00' # 768
+		self.colorModeData = b'\x00\x00\x03\x00' # 768
 		for i in (0,1,2):
 			for j in range(256):
-				self.colorModeData += data[i]
+				self.colorModeData += data[i:i+1]
 				i += 3
 
 	def unrle(self,channeldata):
@@ -52,13 +51,13 @@ class PSDImage:
 			i+= linesize
 			j = 0
 			while j < linesize:
-				c = struct.unpack('b',line[j])[0]
+				c = struct.unpack('b',line[j:j+1])[0]
 				j +=1
 				if 0 <= c <= 127:
 					unpacked += line[j:j+c+1]
 					j += c+1
 				elif -127 <= c <= -1:
-					unpacked += line[j]*(-c+1)
+					unpacked += line[j:j+1]*(-c+1)
 					j += 1
 				else:
 					pass
@@ -71,11 +70,11 @@ class PSDImage:
 			li += struct.pack('>h L', -1, len(alpha[0][1])+2)
 			for i in range(len(channels)):
 				 li += struct.pack('>h L', i, len(channels[i][1])+2)
-			li += '8BIMnorm'
-			li += '\xFF'+'\x00'+'\x00'+'\x00' # Opacity,Clipping,Flags,Filler
-			li += '\x00\x00\x00\x0C' # Extra Data Size
-			li += '\x00\x00\x00\x00'+'\x00\x00\x00\x00' # Layer mask data, Layer blending ranges data
-			li += '\x00\x00\x00\x00' # Layer name
+			li += b'8BIMnorm'
+			li += b'\xFF\x00\x00\x00' # Opacity,Clipping,Flags,Filler
+			li += b'\x00\x00\x00\x0C' # Extra Data Size
+			li += b'\x00\x00\x00\x00'+b'\x00\x00\x00\x00' # Layer mask data, Layer blending ranges data
+			li += b'\x00\x00\x00\x00' # Layer name
 			li += struct.pack('>H',alpha[0][0]) + alpha[0][1]
 			for c in channels:
 				li += struct.pack('>H',c[0]) + c[1]
@@ -116,6 +115,7 @@ class PSDImage:
 				csizes += a[1][:self.height*2]
 				cdata += a[1][self.height*2:]
 			self.imageData += csizes+cdata
+
 	def returnContent(self):
 		return self.header+self.colorModeData+self.imageResources+self.layerAndMask+self.imageData
 
@@ -127,7 +127,7 @@ class adobe_pat(SBCodec):
 		file = open(file,'rb')
 		data = file.read(4)
 		file.close()
-		if data == '8BPT':
+		if data == b'8BPT':
 			return True
 		else:
 			return False
@@ -149,9 +149,9 @@ class adobe_pat(SBCodec):
 			item = Pattern(swatchbook)
 			version1,model,height,width,name_length = struct.unpack('>2L 2H L',file.read(16))
 			if name_length > 0:
-				item.info.title = decode_str(unicode(struct.unpack(str(name_length*2)+'s',file.read(name_length*2))[0],'utf_16_be')).split('\x00')[0]
+				item.info.title = decode_str(struct.unpack(str(name_length*2)+'s',file.read(name_length*2))[0].decode('utf_16_be')).split('\x00')[0]
 			length = struct.unpack('B',file.read(1))[0]
-			id = file.read(length)
+			id = file.read(length).decode('latin-1')
 			pal_size = unk2 = 0
 			palette = False
 			if model == 2:
