@@ -19,7 +19,6 @@
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 import re
 import tempfile
 from shutil import copy2
@@ -133,7 +132,7 @@ class MainWindow(QMainWindow):
 		if file:
 			self.loadFile(file)
 
-		self.mainWidget = QSplitter(Qt.Horizontal)
+		self.mainWidget = QSplitter(Qt.Orientation.Horizontal)
 		self.mainWidget.setContentsMargins(self.mainWidget.handleWidth(), 0, self.mainWidget.handleWidth(), 0)
 
 		groupBoxInfo = QGroupBox(_("Information"))
@@ -142,7 +141,7 @@ class MainWindow(QMainWindow):
 		infoScrollArea.setWidget(self.sbInfo)
 		infoScrollArea.setWidgetResizable(True)
 		palette = infoScrollArea.viewport().palette()
-		palette.setColor(QPalette.Window, Qt.transparent)
+		palette.setColor(QPalette.ColorRole.Window, Qt.transparent)
 		infoScrollArea.viewport().setPalette(palette)
 		infoScrollArea.setFrameShape(QFrame.NoFrame)
 		sbInfoLayout = QVBoxLayout()
@@ -156,7 +155,7 @@ class MainWindow(QMainWindow):
 		self.sbProfList.horizontalHeader().hide()
 		self.sbProfList.setColumnCount(2)
 		self.sbProfList.setColumnHidden(1, True)
-		self.sbProfList.setEditTriggers(QAbstractItemView.NoEditTriggers)
+		self.sbProfList.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 		self.butProf = MenuButton(self)
 		self.menuProf = QMenu()
 		self.menuProf.addAction(_('Add'), self.addProfile)
@@ -166,10 +165,10 @@ class MainWindow(QMainWindow):
 
 		sbProfiles = QHBoxLayout()
 		sbProfiles.addWidget(self.sbProfList)
-		sbProfiles.addWidget(self.butProf, 0, Qt.AlignTop)
+		sbProfiles.addWidget(self.butProf, 0, Qt.AlignmentFlag.AlignTop)
 		groupBoxProfiles.setLayout(sbProfiles)
 
-		sbLeftPane = QSplitter(Qt.Vertical)
+		sbLeftPane = QSplitter(Qt.Orientation.Vertical)
 		sbLeftPane.addWidget(groupBoxInfo)
 		sbLeftPane.addWidget(groupBoxProfiles)
 
@@ -191,7 +190,7 @@ class MainWindow(QMainWindow):
 		sbList = QGridLayout()
 		sbList.addWidget(self.matList, 0, 0)
 		sbList.addWidget(self.matNbLabel, 1, 0)
-		sbList.addWidget(self.matListEditBut, 0, 1, Qt.AlignTop)
+		sbList.addWidget(self.matListEditBut, 0, 1, Qt.AlignmentFlag.AlignTop)
 		self.groupBoxList.setLayout(sbList)
 
 		# sbTree
@@ -208,14 +207,14 @@ class MainWindow(QMainWindow):
 		self.swTEditMenu.addAction(_('Add Break'), self.addBreak)
 		self.swTEditMenu.addAction(_('Add Group'), self.addGroup)
 		self.deleteAction = self.swTEditMenu.addAction(_('Delete'), self.delete)
-		self.deleteAction.setShortcut(Qt.Key_Delete)
+		self.deleteAction.setShortcut(Qt.Key.Key_Delete)
 		self.swTEditBut.setMenu(self.swTEditMenu)
 		self.deleteAction.setEnabled(False)
 
 		sbTree = QGridLayout()
 		sbTree.addWidget(self.treeWidget, 0, 0)
 		sbTree.addWidget(self.swNbLabel, 1, 0)
-		sbTree.addWidget(self.swTEditBut, 0, 1, Qt.AlignTop)
+		sbTree.addWidget(self.swTEditBut, 0, 1, Qt.AlignmentFlag.AlignTop)
 		self.groupBoxTree.setLayout(sbTree)
 
 		# sbGrid
@@ -247,7 +246,7 @@ class MainWindow(QMainWindow):
 		sbGrid.addWidget(self.cols, 2, 1)
 		sbGrid.addWidget(self.rowsLabel, 3, 0)
 		sbGrid.addWidget(self.rows, 3, 1)
-		sbGrid.addWidget(self.swGEditBut, 0, 2, Qt.AlignTop)
+		sbGrid.addWidget(self.swGEditBut, 0, 2, Qt.AlignmentFlag.AlignTop)
 		self.groupBoxGrid.setLayout(sbGrid)
 
 		if settings.contains('gridHoriz') and bool(settings.value('gridHoriz')):
@@ -333,7 +332,7 @@ class MainWindow(QMainWindow):
 	def sw_display_grid(self):
 		if self.gridWidget.selectedItems():
 			gridItem = self.gridWidget.selectedItems()[0]
-			items = dict([v, k] for k, v in self.items.iteritems())
+			items = dict([v, k] for k, v in self.items.items())
 			self.treeWidget.setCurrentItem(items[gridItem])
 			self.matList.setCurrentItem(self.materials[gridItem.item.material][0])
 
@@ -414,8 +413,8 @@ class MainWindow(QMainWindow):
 			image = Image.open(fname)
 			image.load()
 		except (IOError, TypeError):
-			goon = QMessageBox.warning(self, _("Warning"), _("This file isn't supported by the Python Image Library. Add anyway?"), QMessageBox.Yes | QMessageBox.No)
-			if goon == QMessageBox.Yes:
+			goon = QMessageBox.warning(self, _("Warning"), _("This file isn't supported by the Python Image Library. Add anyway?"), QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+			if goon == QMessageBox.StandardButton.Yes:
 				pass
 			else:
 				return
@@ -715,7 +714,7 @@ class MainWindow(QMainWindow):
 
 	def settings(self):
 		dialog = SettingsDlg(self)
-		if dialog.exec_():
+		if dialog.exec():
 			if dialog.returnDisProf():
 				settings.setValue("mntrProfile", dialog.returnDisProf())
 			else:
@@ -789,7 +788,7 @@ class MainWindow(QMainWindow):
 	def webOpen(self):
 		try:
 			dialog = webOpenDlg(self, settings)
-			if dialog.exec_() and dialog.svc and dialog.ids:
+			if dialog.exec() and dialog.svc and dialog.ids:
 				self.clear()
 				self.loadWeb(dialog.svc, dialog.ids[0])
 		except IOError:
@@ -798,7 +797,7 @@ class MainWindow(QMainWindow):
 	def loadWeb(self, websvc, webid):
 		thread = webOpenThread(websvc, webid, self)
 		thread.finished.connect(self.fill)
-		app.setOverrideCursor(Qt.WaitCursor)
+		app.setOverrideCursor(Qt.CursorShape.WaitCursor)
 		self.loadingDlg.label.setText(_("Loading swatch book"))
 		self.loadingDlg.progress.hide()
 		self.loadingDlg.show()
@@ -838,7 +837,7 @@ class MainWindow(QMainWindow):
 		thread = fileOpenThread(os.path.realpath(fname), self)
 		thread.finished.connect(self.fill)
 		thread.fileFormatError.connect(self.fileFormatError)
-		app.setOverrideCursor(Qt.WaitCursor)
+		app.setOverrideCursor(Qt.CursorShape.WaitCursor)
 		self.loadingDlg.label.setText(_("Loading swatch"))
 		self.loadingDlg.progress.hide()
 		self.loadingDlg.show()
@@ -896,7 +895,7 @@ class MainWindow(QMainWindow):
 
 	def drawIcon(self, id):
 		material = form.sb.materials[id]
-		pix = QImage(16, 16, QImage.Format_ARGB32_Premultiplied)
+		pix = QImage(16, 16, QImage.Format.Format_ARGB32_Premultiplied)
 		pix.fill(Qt.transparent)
 		paint = QPainter()
 		prof_out = settings.value("mntrProfile") or False
@@ -916,7 +915,7 @@ class MainWindow(QMainWindow):
 				paint.drawEllipse(0, 0, 15, 15)
 			else:
 				paint.drawRect(0, 0, 15, 15)
-			paint.setPen(Qt.DotLine)
+			paint.setPen(Qt.PenStyle.DotLine)
 			if 'spot' in material.usage:
 				paint.drawEllipse(0, 0, 15, 15)
 			else:
@@ -925,13 +924,13 @@ class MainWindow(QMainWindow):
 		elif isinstance(material, Pattern) and material.image():
 			image = ImageQt.ImageQt(material.imageRGB())
 			paint.begin(pix)
-			paint.drawImage(0, 0, image.scaled(16, 16, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation))
+			paint.drawImage(0, 0, image.scaled(16, 16, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation))
 			paint.setPen(QColor(0, 0, 0))
 			paint.drawRect(0, 0, 15, 15)
 			normal = pix.copy()
 			paint.setPen(QColor(255, 255, 255))
 			paint.drawRect(0, 0, 15, 15)
-			paint.setPen(Qt.DotLine)
+			paint.setPen(Qt.PenStyle.DotLine)
 			paint.drawRect(0, 0, 15, 15)
 			paint.end()
 		elif isinstance(material, Gradient):
@@ -956,7 +955,7 @@ class MainWindow(QMainWindow):
 			paint.begin(pix)
 			paint.setPen(QColor(255, 255, 255))
 			paint.drawRect(0, 0, 15, 15)
-			paint.setPen(Qt.DotLine)
+			paint.setPen(Qt.PenStyle.DotLine)
 			paint.drawRect(0, 0, 15, 15)
 			paint.end()
 		else:
@@ -969,7 +968,7 @@ class MainWindow(QMainWindow):
 			paint.begin(pix)
 			paint.setPen(QColor(255, 255, 255))
 			paint.drawRect(0, 0, 15, 15)
-			paint.setPen(Qt.DotLine)
+			paint.setPen(Qt.PenStyle.DotLine)
 			paint.drawRect(0, 0, 15, 15)
 			paint.end()
 		selected = pix
@@ -980,7 +979,7 @@ class MainWindow(QMainWindow):
 		if self.loadingDlg.isVisible():
 			self.loadingDlg.progress.setValue(self.loadingDlg.progress.value() + 1)
 		icon = QIcon(QPixmap.fromImage(normal))
-		icon.addPixmap(QPixmap.fromImage(selected), QIcon.Selected)
+		icon.addPixmap(QPixmap.fromImage(selected), QIcon.Mode.Selected)
 		self.materials[id][3] = icon
 		swupdate(id)
 
@@ -1077,7 +1076,7 @@ class MenuButton(QToolButton):
 	def __init__(self, parent=None):
 		super(MenuButton, self).__init__(parent)
 		self.setFixedSize(12, 12)
-		self.setArrowType(Qt.DownArrow)
+		self.setArrowType(Qt.ArrowType.DownArrow)
 		self.setStyleSheet("MenuButton::menu-indicator {image: none;}")
 		self.setPopupMode(QToolButton.InstantPopup)
 
@@ -1116,13 +1115,13 @@ class InfoWidget(QWidget):
 
 		layout.addWidget(QLabel(_("Description:")), i, 0, 1, 2)
 		layout.addWidget(self.description, i + 1, 0, 1, 2)
-		layout.addWidget(self.l10nDescription, i + 1, 2, Qt.AlignTop)
+		layout.addWidget(self.l10nDescription, i + 1, 2, Qt.AlignmentFlag.AlignTop)
 		i = i + 2
 
 		if item.__class__.__name__ in ('SwatchBook',):
 			layout.addWidget(QLabel(_("Rights:")), i, 0, 1, 2)
 			layout.addWidget(self.rights, i + 1, 0, 1, 2)
-			layout.addWidget(self.l10nRights, i + 1, 2, Qt.AlignTop)
+			layout.addWidget(self.l10nRights, i + 1, 2, Qt.AlignmentFlag.AlignTop)
 			i = i + 2
 
 			layout.addWidget(QLabel(_("License:")), i, 0)
@@ -1209,7 +1208,7 @@ class l10nButton(QToolButton):
 class l10nWidget(QWidget):
 	def __init__(self, caller, info, long=False, parent=None):
 		super(l10nWidget, self).__init__(parent)
-		self.setWindowFlags(Qt.Popup)
+		self.setWindowFlags(Qt.WindowType.Popup)
 
 		self.caller = caller
 		self.info = info
@@ -1281,9 +1280,9 @@ class l10nItem(QWidget):
 		self.textEdit.setText(text)
 		delLoc = QPushButton('-')
 		delLoc.setFixedWidth(delLoc.sizeHint().height())
-		layout.addWidget(self.langEdit, 0, Qt.AlignTop)
-		layout.addWidget(self.textEdit, 0, Qt.AlignTop)
-		layout.addWidget(delLoc, 0, Qt.AlignTop)
+		layout.addWidget(self.langEdit, 0, Qt.AlignmentFlag.AlignTop)
+		layout.addWidget(self.textEdit, 0, Qt.AlignmentFlag.AlignTop)
+		layout.addWidget(delLoc, 0, Qt.AlignmentFlag.AlignTop)
 		self.setLayout(layout)
 
 		self.langEdit.editingFinished.connect(self.langEdited)
@@ -1366,7 +1365,7 @@ class treeItemSwatch(QTreeWidgetItem):
 		super(treeItemSwatch, self).__init__(parent)
 		self.item = item
 		form.materials[item.material][1].append(self)
-		self.setFlags(self.flags() & ~(Qt.ItemIsDropEnabled))
+		self.setFlags(self.flags() & ~(Qt.ItemFlag.ItemIsDropEnabled))
 		self.update()
 
 	def update(self):
@@ -1407,18 +1406,18 @@ class treeItemSpacer(QTreeWidgetItem):
 		self.setText(0, '<spacer>')
 		self.setFont(0, font)
 		self.setForeground(0, QColor(128, 128, 128))
-		self.setFlags(self.flags() & ~(Qt.ItemIsDropEnabled))
+		self.setFlags(self.flags() & ~(Qt.ItemFlag.ItemIsDropEnabled))
 
 class gridItemSpacer(QListWidgetItem):
 	def __init__(self, item, parent=None):
 		super(gridItemSpacer, self).__init__(parent)
 
 		self.item = item
-		pix = QImage(1, 1, QImage.Format_Mono)
+		pix = QImage(1, 1, QImage.Format.Format_Mono)
 		pix.fill(Qt.transparent)
 		self.setIcon(QIcon(QPixmap.fromImage(pix)))
 		self.setSizeHint(QSize(17, 17))
-		self.setFlags(Qt.NoItemFlags)
+		self.setFlags(Qt.ItemFlag.NoItemFlags)
 
 class treeItemBreak(QTreeWidgetItem):
 	def __init__(self, item, parent=None):
@@ -1430,7 +1429,7 @@ class treeItemBreak(QTreeWidgetItem):
 		self.setText(0, '<break>')
 		self.setFont(0, font)
 		self.setForeground(0, QColor(128, 128, 128))
-		self.setFlags(self.flags() & ~(Qt.ItemIsDropEnabled))
+		self.setFlags(self.flags() & ~(Qt.ItemFlag.ItemIsDropEnabled))
 
 class gridItemBreak(QListWidgetItem):
 	def __init__(self, item, parent=None):
@@ -1438,11 +1437,11 @@ class gridItemBreak(QListWidgetItem):
 
 		self.item = item
 		breaks.append(self)
-		pix = QImage(1, 1, QImage.Format_Mono)
+		pix = QImage(1, 1, QImage.Format.Format_Mono)
 		pix.fill(Qt.transparent)
 		self.setIcon(QIcon(QPixmap.fromImage(pix)))
 		self.setSizeHint(QSize(0, 17))
-		self.setFlags(Qt.NoItemFlags)
+		self.setFlags(Qt.ItemFlag.NoItemFlags)
 
 class gridItemGroup(gridItemBreak):
 	def __init__(self, item, parent=None):
@@ -1457,7 +1456,7 @@ class noChild(QTreeWidgetItem):
 		self.setText(0, _('empty'))
 		self.setFont(0, font)
 		self.setForeground(0, QColor(128, 128, 128))
-		self.setFlags(self.flags() & ~(Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled))
+		self.setFlags(self.flags() & ~(Qt.ItemFlag.ItemIsDragEnabled | Qt.ItemFlag.ItemIsDropEnabled))
 
 class matListWidget(QListWidget):
 	def __init__(self, parent=None):
@@ -1477,7 +1476,7 @@ class matListWidget(QListWidget):
 		data.setText(self.currentItem().id)
 		drag.setMimeData(data)
 		drag.setHotSpot(QPoint(pixmap.width() / 2, pixmap.height() / 2))
-		drag.start(Qt.CopyAction)
+		drag.start(Qt.DropAction.CopyAction)
 
 class sbTreeWidget(QTreeWidget):
 	def __init__(self, parent=None):
@@ -1491,7 +1490,7 @@ class sbTreeWidget(QTreeWidget):
 
 	def dropEvent(self, event):
 		if event.source() == self:
-			event.setDropAction(Qt.MoveAction)
+			event.setDropAction(Qt.DropAction.MoveAction)
 			QTreeWidget.dropEvent(self, event)
 			# Add or remove <empty>
 			if self.itemParent and self.itemParent.childCount() == 0:
@@ -1592,10 +1591,10 @@ class sbTreeWidget(QTreeWidget):
 
 	def dragMoveEvent(self, event):
 		if event.source() == self:
-			event.setDropAction(Qt.MoveAction)
+			event.setDropAction(Qt.DropAction.MoveAction)
 			QTreeWidget.dragMoveEvent(self, event)
 		elif event.source() == form.matList:
-			event.setDropAction(Qt.LinkAction)
+			event.setDropAction(Qt.DropAction.LinkAction)
 			QTreeWidget.dragMoveEvent(self, event)
 		else:
 			event.ignore()
@@ -1627,15 +1626,15 @@ class sbGridWidget(QListWidget):
 				self.setMinimumWidth(0)
 				self.setMaximumWidth(0xFFFFFF)
 			self.setFlow(QListView.TopToBottom)
-			self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-			self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+			self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+			self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
 			self.zWidth = 2 * self.frameWidth()
 			self.zHeight = 2 * self.frameWidth() + self.horizontalScrollBar().size().height() + 1
 			avail_height = self.size().height() - self.zHeight
 			breaks2 = {}
 			for item in breaks:
 				breaks2[self.row(item)] = item
-			for key in sorted(breaks2.iterkeys()):
+			for key in sorted(breaks2.keys()):
 				if isinstance(self.item(key), gridItemGroup) and (isinstance(self.item(key - 1), gridItemBreak) or isinstance(self.item(key - 1), gridItemGroup) or key == 0):
 					height = 0
 				elif isinstance(self.item(key - 1), gridItemBreak) or key == 0:
@@ -1656,15 +1655,15 @@ class sbGridWidget(QListWidget):
 				self.setMinimumHeight(0)
 				self.setMaximumHeight(0xFFFFFF)
 			self.setFlow(QListView.LeftToRight)
-			self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-			self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+			self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+			self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 			self.zWidth = 2 * self.frameWidth() + self.verticalScrollBar().size().width() + 1
 			self.zHeight = 2 * self.frameWidth()
 			avail_width = self.size().width() - self.zWidth
 			breaks2 = {}
 			for item in breaks:
 				breaks2[self.row(item)] = item
-			for key in sorted(breaks2.iterkeys()):
+			for key in sorted(breaks2.keys()):
 				if isinstance(self.item(key), gridItemGroup) and (isinstance(self.item(key - 1), gridItemBreak) or isinstance(self.item(key - 1), gridItemGroup) or key == 0):
 					width = 0
 				elif isinstance(self.item(key - 1), gridItemBreak) or key == 0:
@@ -1706,7 +1705,7 @@ class MaterialWidget(QGroupBox):
 		infoScrollArea.setWidget(self.infoWidget)
 		infoScrollArea.setWidgetResizable(True)
 		palette = infoScrollArea.viewport().palette()
-		palette.setColor(QPalette.Window, Qt.transparent)
+		palette.setColor(QPalette.ColorRole.Window, Qt.transparent)
 		infoScrollArea.viewport().setPalette(palette)
 		infoScrollArea.setFrameShape(QFrame.NoFrame)
 
@@ -1718,7 +1717,7 @@ class MaterialWidget(QGroupBox):
 		self.swExtra.horizontalHeader().setStretchLastSection(True)
 		self.swExtra.verticalHeader().hide()
 		self.swExtra.setHorizontalHeaderLabels([_("Key"), _("Value")])
-		self.swExtra.setSelectionBehavior(QAbstractItemView.SelectRows)
+		self.swExtra.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 		self.butExtra = MenuButton(self)
 		self.menuExtra = QMenu()
 		self.menuExtra.addAction(_('Add'), self.addExtra)
@@ -1729,7 +1728,7 @@ class MaterialWidget(QGroupBox):
 		groupBoxExtra = QGroupBox(_("Extra info"))
 		boxExtra = QHBoxLayout()
 		boxExtra.addWidget(self.swExtra)
-		boxExtra.addWidget(self.butExtra, 0, Qt.AlignTop)
+		boxExtra.addWidget(self.butExtra, 0, Qt.AlignmentFlag.AlignTop)
 		groupBoxExtra.setLayout(boxExtra)
 
 		layout = QVBoxLayout()
@@ -1891,7 +1890,7 @@ class ColorWidget(QWidget):
 		valScrollArea.setWidget(valWidget)
 		valScrollArea.setWidgetResizable(True)
 		palette = valScrollArea.viewport().palette()
-		palette.setColor(QPalette.Window, Qt.transparent)
+		palette.setColor(QPalette.ColorRole.Window, Qt.transparent)
 		valScrollArea.viewport().setPalette(palette)
 		valScrollArea.setFrameShape(QFrame.NoFrame)
 
@@ -1907,7 +1906,7 @@ class ColorWidget(QWidget):
 				modellist = model
 			profCombo = QComboBox()
 			profCombo.addItem('')
-			for prof in sorted(self.getProfList(modellist), cmp=lambda x, y: cmp(x[0].lower(), y[0].lower())):
+			for prof in sorted(self.getProfList(modellist), key=lambda x: x[0].lower()):
 				profCombo.addItem(prof[0], prof[1])
 			if profile in form.sb.profiles:
 				profCombo.setCurrentIndex(profCombo.findData(profile))
@@ -2310,7 +2309,7 @@ class SwatchPreview(QLabel):
 		bgpaint.drawRect(8, 0, 8, 8)
 		bgpaint.drawRect(0, 8, 8, 8)
 		bgpaint.end()
-		palette.setBrush(QPalette.Window, QBrush(bgpix))
+		palette.setBrush(QPalette.ColorRole.Window, QBrush(bgpix))
 		self.setPalette(palette)
 		self.setAutoFillBackground(True)
 
@@ -2344,20 +2343,20 @@ class SwatchPreview(QLabel):
 
 	def mousePressEvent(self, event):
 		if self.isFullScreen():
-			self.setWindowFlags(Qt.Widget)
+			self.setWindowFlags(Qt.WindowType.Widget)
 			self.showNormal()
 			self.releaseKeyboard()
 			self.releaseMouse()
 		else:
 			self.setToolTip('')
-			self.setWindowFlags(Qt.Window)
+			self.setWindowFlags(Qt.WindowType.Window)
 			self.showFullScreen()
 			self.grabKeyboard()
 			self.grabMouse()
 
 	def keyPressEvent(self, event):
-		if event.key() == Qt.Key_Escape:
-			self.setWindowFlags(Qt.Widget)
+		if event.key() == Qt.Key.Key_Escape:
+			self.setWindowFlags(Qt.WindowType.Widget)
 			self.showNormal()
 			self.releaseKeyboard()
 			self.releaseMouse()
@@ -2365,16 +2364,16 @@ class SwatchPreview(QLabel):
 			QWidget.keyPressEvent(self, event)
 
 class MultiSlider(QSlider):
-	currentHandleChanged = pyqtSignal(int)
-	sliderAdded = pyqtSignal(int)
-	sliderDeleted = pyqtSignal(int)
-	sliderMoved = pyqtSignal(int)
-	sliderPressed = pyqtSignal()
-	sliderReleased = pyqtSignal()
+	currentHandleChanged = Signal(int)
+	sliderAdded = Signal(int)
+	sliderDeleted = Signal(int)
+	sliderMoved = Signal(int)
+	sliderPressed = Signal()
+	sliderReleased = Signal()
 
 	# freely inspired by QT's code ;-) 
 	def __init__(self, parent):
-		super(MultiSlider, self).__init__(Qt.Horizontal, parent)
+		super(MultiSlider, self).__init__(Qt.Orientation.Horizontal, parent)
 		self.handles = []
 
 		self.pressedControl = QStyle.SC_None
@@ -2411,7 +2410,7 @@ class MultiSlider(QSlider):
 		grooveRect = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self)
 		handleRect = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
 		widgetRect = opt.rect
-		if self.orientation() == Qt.Horizontal:
+		if self.orientation() == Qt.Orientation.Horizontal:
 			return (widgetRect.width() - grooveRect.width() + handleRect.width()) / 2
 		else:
 			return (widgetRect.height() - grooveRect.height() + handleRect.height()) / 2
@@ -2461,7 +2460,7 @@ class MultiSlider(QSlider):
 			lastHoverRect = self.hoverRect
 			lastHoverControl = self.hoverControl
 			lastHandle = self.handles[0]
-			doesHover = self.testAttribute(Qt.WA_Hover)
+			doesHover = self.testAttribute(Qt.WidgetAttribute.WA_Hover)
 			newHoverControl = self.__newHoverControl(pos)
 			if ((lastHoverControl != newHoverControl or lastHandle != self.handles[0]) and doesHover):
 				self.update(lastHoverRect)
@@ -2663,7 +2662,7 @@ class MultiSlider(QSlider):
 		self.update()
 		if self.pressed:
 			self.sliderMoved.emit(position)
-		self.triggerAction(QSlider.SliderMove)
+		self.triggerAction(QAbstractSlider.SliderAction.SliderMove)
 
 	def setSliderDown(self, down):
 		doEmit = self.pressed != down
@@ -2675,7 +2674,7 @@ class MultiSlider(QSlider):
 				self.sliderReleased.emit()
 
 class fileOpenThread(QThread):
-	fileFormatError = pyqtSignal()
+	fileFormatError = Signal()
 
 	def __init__(self, fname, parent=None):
 		super(fileOpenThread, self).__init__(parent)
@@ -2702,7 +2701,7 @@ class webOpenThread(QThread):
 		self.parent().sb = SwatchBook(websvc=self.svc, webid=self.id)
 
 class fillViewsThread(QThread):
-	filled = pyqtSignal()
+	filled = Signal()
 
 	def __init__(self, parent=None):
 		super(fillViewsThread, self).__init__(parent)
@@ -2748,7 +2747,7 @@ class fillViewsThread(QThread):
 			self.filled.emit()
 
 class drawIconThread(QThread):
-	icon = pyqtSignal(str,QImage,QImage)
+	icon = Signal(str,QImage,QImage)
 
 	def __init__(self, id, parent=None):
 		super(drawIconThread, self).__init__(parent)
@@ -2762,7 +2761,7 @@ class LoadingDlg(QDialog):
 	def __init__(self, parent=None):
 		super(LoadingDlg, self).__init__(parent)
 		self.setModal(True)
-		self.setWindowFlags(Qt.ToolTip)
+		self.setWindowFlags(Qt.WindowType.ToolTip)
 
 		self.label = QLabel()
 		self.progress = QProgressBar()
@@ -2782,7 +2781,7 @@ class SettingsDlg(QDialog):
 		self.profiles = []
 		self.listProfiles()
 
-		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
 
 		self.mntrCombo = QComboBox()
 		self.cmykCombo = QComboBox()
@@ -2790,7 +2789,7 @@ class SettingsDlg(QDialog):
 		self.cmykCombo.addItem('Fogra27L')
 		self.mntrCombo.insertSeparator(self.mntrCombo.count())
 		self.cmykCombo.insertSeparator(self.cmykCombo.count())
-		for profile in sorted(self.profiles, cmp=lambda x, y: cmp(x[0].lower(), y[0].lower())):
+		for profile in sorted(self.profiles, key=lambda x: x[0].lower()):
 			if profile[2] == "mntr" and profile[3] == 'RGB ':
 				self.mntrCombo.addItem(profile[0], profile[1])
 			if profile[3] == 'CMYK':
@@ -2974,4 +2973,4 @@ if __name__ == "__main__":
 	form.show()
 	form.dispPane()
 
-	app.exec_()
+	app.exec()
