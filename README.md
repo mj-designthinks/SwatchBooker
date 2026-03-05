@@ -18,17 +18,16 @@ Three entry points are provided:
 
 ## Installation
 
-**Requirements:** Python 3.10+, PySide6, Pillow, Little CMS 2 (`liblcms2`)
+**Requirements:** Python 3.10+, [uv](https://docs.astral.sh/uv/), Little CMS 2 (`liblcms2`)
 
 ### macOS (Homebrew)
 
 ```sh
-brew install little-cms2
+brew install little-cms2 uv
 git clone https://github.com/your-fork/SwatchBooker.git
 cd SwatchBooker
-uv venv .venv
+uv sync
 source .venv/bin/activate
-uv pip install PySide6 Pillow
 python src/swatchbooker.pyw
 ```
 
@@ -36,21 +35,42 @@ python src/swatchbooker.pyw
 
 ```sh
 sudo apt install liblcms2-2
+curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone https://github.com/your-fork/SwatchBooker.git
 cd SwatchBooker
-python -m venv .venv
+uv sync
 source .venv/bin/activate
-pip install PySide6 Pillow
 python src/swatchbooker.pyw
 ```
 
 ### Windows
 
-Install [Little CMS 2](https://www.littlecms.com/) and ensure `lcms2.dll` is on your `PATH`, then:
+Install [Little CMS 2](https://www.littlecms.com/) and ensure `lcms2.dll` is on your `PATH`, install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
 
 ```sh
-pip install PySide6 Pillow
+uv sync
+.venv\Scripts\activate
 python src/swatchbooker.pyw
+```
+
+## Development
+
+Install dependencies including the test suite:
+
+```sh
+uv sync --extra dev
+```
+
+Run all tests:
+
+```sh
+uv run pytest
+```
+
+Run a specific test file:
+
+```sh
+uv run pytest tests/test_color_math.py -v
 ```
 
 ## Features
