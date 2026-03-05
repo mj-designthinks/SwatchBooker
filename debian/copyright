@@ -4,7 +4,7 @@ This work was packaged for Debian by:
 
 It was downloaded from:
 
-    https://launchpad.net/swatchbooker
+    https://github.com/mj-designthinks/SwatchBooker
 
 Upstream Author(s):
 
@@ -12,7 +12,7 @@ Upstream Author(s):
 
 Copyright:
 
-    Copyright (C) 2008 Olivier Berten
+    Copyright (C) 2008-2026 Olivier Berten
 
 License:
 
@@ -34,7 +34,7 @@ Public License version 3 can be found in `/usr/share/common-licenses/GPL-3'.
 
 The Debian packaging is:
 
-    Copyright (C) 2010 Olivier Berten <olivier.berten@gmail.com>
+    Copyright (C) 2010-2026 Olivier Berten <olivier.berten@gmail.com>
 
 and is licensed under the GPL version 3, see above.
 
