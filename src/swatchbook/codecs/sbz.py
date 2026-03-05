@@ -2,17 +2,17 @@
 # coding: utf-8
 #
 #       Copyright 2008 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -78,7 +78,7 @@ class sbz(SBCodec):
 				if elem.tag == '{'+dc+'}date':
 					try:
 						item.info.date = datetime.strptime(elem.text,"%Y-%m-%dT%H:%M:%S.%f")
-					except ValueError, e:
+					except ValueError as e:
 						if str(e) == "'f' is a bad directive in format '%Y-%m-%dT%H:%M:%S.%f'": # Python 2.5
 							item.info.date = datetime.strptime(elem.text.split('.')[0],"%Y-%m-%dT%H:%M:%S")
 						else:
@@ -96,12 +96,14 @@ class sbz(SBCodec):
 					if elem.text != 'application/swatchbook':
 						raise FileFormatError
 				elif '{'+xml+'}lang' in elem.attrib:
-					exec("item.info."+elem.tag[(len(dc)+2):]+"_l10n[elem.attrib['{'+xml+'}lang']] = xmlunescape(elem.text)")
+					attr_name = elem.tag[(len(dc)+2):] + "_l10n"
+					getattr(item.info, attr_name)[elem.attrib['{'+xml+'}lang']] = xmlunescape(elem.text)
 				elif elem.tag == '{'+dcterms+'}license':
 					item.info.license = xmlunescape(elem.attrib['{'+rdf+'}resource'])
 				else:
-					exec("item.info."+elem.tag[(len(dc)+2):]+" = xmlunescape(elem.text)")
-			
+					attr_name = elem.tag[(len(dc)+2):]
+					setattr(item.info, attr_name, xmlunescape(elem.text))
+
 
 	@staticmethod
 	def readmaterial(material,swatchbook):
@@ -113,9 +115,9 @@ class sbz(SBCodec):
 			sitem = Pattern(swatchbook)
 		for elem in material:
 			if elem.tag == 'values':
-				values = map(eval,elem.text.split())
+				values = list(map(eval,elem.text.split()))
 				if 'space' in elem.attrib:
-					sitem.values[(elem.attrib['model'],unicode(elem.attrib['space']))] = values
+					sitem.values[(elem.attrib['model'],str(elem.attrib['space']))] = values
 				else:
 					sitem.values[(elem.attrib['model'],False)] = values
 			elif elem.tag == 'metadata':
@@ -166,7 +168,7 @@ class sbz(SBCodec):
 				for extra in material.extra:
 					xml += '      <extra type="'+xmlescape(extra)+'">'
 					if material.extra[extra]:
-						xml += xmlescape(unicode(material.extra[extra]))
+						xml += xmlescape(str(material.extra[extra]))
 					xml += '</extra>\n'
 				xml += '    </color>\n'
 			elif isinstance(swatchbook.materials[id], Pattern):
@@ -175,7 +177,7 @@ class sbz(SBCodec):
 				for extra in material.extra:
 					xml += '      <extra type="'+xmlescape(extra)+'">'
 					if material.extra[extra]:
-						xml += xmlescape(unicode(material.extra[extra]))
+						xml += xmlescape(str(material.extra[extra]))
 					xml += '</extra>\n'
 				xml += '    </pattern>\n'
 		xml += '  </materials>\n'
@@ -185,10 +187,10 @@ class sbz(SBCodec):
 				if swatchbook.book.display[display]:
 					xml += ' '+display+'="'+str(swatchbook.book.display[display])+'"'
 			xml += '>\n'
-			xml += unicode(sbz.writem(swatchbook.book.items),'utf-8')
+			xml += sbz.writem(swatchbook.book.items)
 			xml += '  </book>\n'
 		xml += '</SwatchBook>\n'
-		
+
 		tf = open(tempfile.mkstemp()[1],"w+b")
 		zip = ZipFile(tf,'w',ZIP_DEFLATED)
 		zip.writestr('swatchbook.xml',xml.encode('utf-8'))
@@ -243,5 +245,5 @@ class sbz(SBCodec):
 				xml += '  '*(offset+2)+'<spacer />\n'
 			elif isinstance(item,Break):
 				xml += '  '*(offset+2)+'<break />\n'
-		return xml.encode('utf-8')
-				
+		return xml
+
