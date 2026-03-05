@@ -19,7 +19,6 @@
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 import os
 import struct
 import string
@@ -32,31 +31,31 @@ class ICCprofile():
 	'''Gets basic informations about a profile'''
 	def __init__(self,uri):
 		if os.path.getsize(uri) < 128:
-			raise BadICCprofile, "That file doesn't seem to be an ICC color profile"
+			raise BadICCprofile("That file doesn't seem to be an ICC color profile")
 		else:
 			file = open(uri,'rb')
 			self.uri = uri
 			file.seek(0)
 			size,cmm = struct.unpack('>L 4s',file.read(8))                    # Profile size
 			if os.path.getsize(uri) != size:
-				raise BadICCprofile, "That file doesn't have the expected size"
-			if not (all(c in string.ascii_letters+' '+string.digits for c in cmm) or cmm == '\x00\x00\x00\x00'):
-				raise BadICCprofile, "That file doesn't seem to be an ICC color profile"
+				raise BadICCprofile("That file doesn't have the expected size")
+			if not (all(c in string.ascii_letters+' '+string.digits for c in cmm.decode('latin-1')) or cmm == b'\x00\x00\x00\x00'):
+				raise BadICCprofile("That file doesn't seem to be an ICC color profile")
 			else:
 				file.seek(8)
 				version = struct.unpack('>B 1s 2s',file.read(4))              # Profile version number
-				version1 = version[1].encode('hex')
+				version1 = version[1].hex()
 				self.info = {}
-				self.info['version'] = (version[0],eval('0x'+version1[0]),eval('0x'+version1[1]))
-				self.info['class'] = struct.unpack('4s',file.read(4))[0]      # Profile/Device Class
-				self.info['space'] = struct.unpack('4s',file.read(4))[0]      # Color space of data
-				self.info['pcs'] = struct.unpack('4s',file.read(4))[0]        # Profile Connection Space
+				self.info['version'] = (version[0], int(version1[0], 16), int(version1[1], 16))
+				self.info['class'] = struct.unpack('4s',file.read(4))[0].decode('latin-1')  # Profile/Device Class
+				self.info['space'] = struct.unpack('4s',file.read(4))[0].decode('latin-1')  # Color space of data
+				self.info['pcs'] = struct.unpack('4s',file.read(4))[0].decode('latin-1')    # Profile Connection Space
 				file.seek(128)
 				tags = struct.unpack('>L',file.read(4))[0]
 				self.info['tags'] = {}
 				for i in range(tags):
 					tag = struct.unpack('>4s 2L',file.read(12))
-					self.info['tags'][tag[0]] = (tag[1],tag[2])
+					self.info['tags'][tag[0].decode('latin-1').strip()] = (tag[1],tag[2])
 
 				try:
 					cprt = self.info['tags']['cprt']
@@ -65,20 +64,21 @@ class ICCprofile():
 					desc = self.info['tags']['desc']
 					self.info['desc'] = self.readfield(file,desc[1],desc[0])
 				except KeyError:
-					raise BadICCprofile, "That file misses one mandatory tag"
+					raise BadICCprofile("That file misses one mandatory tag")
 			file.close()
 
 	def readfield(self,file,size,start):
 		file.seek(start)
-		type,zero = struct.unpack('>4s L',file.read(8))
+		tag_type,zero = struct.unpack('>4s L',file.read(8))
+		tag_type = tag_type.decode('latin-1').strip()
 		# text and desc fields are supposed to be coded in plain ascii but I've come across some mac_roman encoded
-		if type == 'text':
+		if tag_type == 'text':
 			content = struct.unpack(str(size-8)+'s',file.read(size-8))[0]
-			return {0: unicode(content,'mac_roman').split('\x00', 1)[0]}
-		elif type == 'desc':
+			return {0: content.decode('mac_roman').split('\x00', 1)[0]}
+		elif tag_type == 'desc':
 			acount = struct.unpack('>L',file.read(4))[0]
-			return {0: unicode(struct.unpack(str(acount)+'s',file.read(acount))[0],'mac_roman').split('\x00', 1)[0]}
-		elif type == 'mluc':
+			return {0: struct.unpack(str(acount)+'s',file.read(acount))[0].decode('mac_roman').split('\x00', 1)[0]}
+		elif tag_type == 'mluc':
 			content = {}
 			records = []
 			nbrecords = struct.unpack('>L',file.read(4))[0]
@@ -87,11 +87,13 @@ class ICCprofile():
 				records.append(struct.unpack('>2s 2s 2L',file.read(12)))
 			for r in records:
 				lang,country,length,offset = r
+				lang = lang.decode('latin-1')
+				country = country.decode('latin-1')
 				file.seek(start+offset)
 				if country != '\x00\x00':
 					lg = lang+'_'+country
 				else:
 					lg = lang
-				content[lg] = unicode(struct.unpack(str(length)+'s',file.read(length))[0],'utf_16_be').strip('\x00')
+				content[lg] = struct.unpack(str(length)+'s',file.read(length))[0].decode('utf_16_be').strip('\x00')
 			return content
 		
