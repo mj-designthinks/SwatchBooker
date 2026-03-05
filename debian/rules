@@ -1,8 +1,25 @@
 #!/usr/bin/make -f
 
-DEB_PYTHON_SYSTEM=pycentral
+export DH_VERBOSE = 1
+export PYBUILD_NAME = swatchbook
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/python-distutils.mk
+%:
+	dh $@ --with python3 --buildsystem=pybuild
 
-# Add here any variable or target overrides you need.
+override_dh_auto_install:
+	dh_auto_install
+	# Install launcher scripts to /usr/bin
+	install -D -m 755 data/swatchbooker   debian/swatchbooker/usr/bin/swatchbooker
+	install -D -m 755 data/sbconvertor    debian/swatchbooker/usr/bin/sbconvertor
+	install -D -m 755 data/sbconvert      debian/swatchbooker/usr/bin/sbconvert
+	# Install .desktop entries
+	install -D -m 644 data/swatchbooker.desktop  debian/swatchbooker/usr/share/applications/swatchbooker.desktop
+	install -D -m 644 data/sbconvertor.desktop   debian/swatchbooker/usr/share/applications/sbconvertor.desktop
+	# Install icon
+	install -D -m 644 data/swatchbooker.svg  debian/swatchbooker/usr/share/pixmaps/swatchbooker.svg
+	# Compile and install translations
+	for po in translations/*.po; do \
+	    lang=$$(basename $$po .po); \
+	    install -d debian/swatchbooker/usr/share/locale/$$lang/LC_MESSAGES; \
+	    python3 msgfmt.py -o debian/swatchbooker/usr/share/locale/$$lang/LC_MESSAGES/swatchbooker.mo $$po; \
+	done
