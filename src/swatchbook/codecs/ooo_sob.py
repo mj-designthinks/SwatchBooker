@@ -2,17 +2,17 @@
 # coding: utf-8
 #
 #       Copyright 2010 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -53,7 +53,7 @@ class ooo_sob(SBCodec):
 			if elem.tag == draw+'fill-image':
 				item = Pattern(swatchbook)
 				if draw+'name' in elem.attrib:
-					item.info.title = xmlunescape(unicode(elem.attrib[draw+'name']))
+					item.info.title = xmlunescape(str(elem.attrib[draw+'name']))
 				if '{http://www.w3.org/1999/xlink}href' in elem.attrib:
 					id = item.info.identifier = elem.attrib['{http://www.w3.org/1999/xlink}href'].replace("Pictures/","")
 				if id in swatchbook.materials:
