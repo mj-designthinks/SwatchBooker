@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from distutils.core import setup
-from distutils import cmd
-from distutils.command.install_data import install_data as _install_data
-from distutils.command.build import build as _build
+from setuptools import setup, Command
+from setuptools.command.install_data import install_data as _install_data
+from setuptools.command.build import build as _build
 
 import msgfmt
 import os
 
-class build_trans(cmd.Command):
+class build_trans(Command):
     description = 'Compile .po files into .mo files'
     def initialize_options(self):
         pass
@@ -29,13 +28,13 @@ class build_trans(cmd.Command):
                     if not os.path.exists(dest_path):
                         os.makedirs(dest_path)
                     if not os.path.exists(dest):
-                        print 'Compiling %s' % src
+                        print('Compiling %s' % src)
                         msgfmt.make(src, dest)
                     else:
                         src_mtime = os.stat(src)[8]
                         dest_mtime = os.stat(dest)[8]
                         if src_mtime > dest_mtime:
-                            print 'Compiling %s' % src
+                            print('Compiling %s' % src)
                             msgfmt.make(src, dest)
 
 class build(_build):
