@@ -3,10 +3,11 @@ REM build-windows.bat - Build SwatchBooker-Setup.exe for Windows
 REM
 REM Requirements:
 REM   - Python 3.10+ and uv installed and on PATH
+REM   - GNU gettext for Windows (provides msgfmt.exe):
+REM     https://mlocati.github.io/articles/gettext-iconv-windows.html
 REM   - liblcms2.dll present in the repo root (or on PATH)
 REM     Obtain from: https://www.littlecms.com/ or GIMP's Windows distribution
 REM   - Inno Setup 6 installed at default location
-REM   - rsvg-convert or another SVG converter if you need to regenerate the icon
 REM
 REM Run from the repo root:
 REM   packaging\build-windows.bat
@@ -19,7 +20,7 @@ echo =^> Compiling translations (.po -^> .mo)
 for %%f in (translations\*.po) do (
     set "po=%%f"
     set "mo=%%~dpnf.mo"
-    python msgfmt.py -o "!mo!" "!po!"
+    msgfmt -o "!mo!" "!po!"
     echo     %%f -^> !mo!
 )
 
