@@ -2,24 +2,23 @@
 # coding: utf-8
 #
 #       Copyright 2010 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class gimp_ggr(SBCodec):
@@ -27,29 +26,29 @@ class gimp_ggr(SBCodec):
 	ext = ('ggr',)
 	@staticmethod
 	def test(file):
-		file = open(file)
+		file = open(file, 'r', newline=None)
 		data = file.read(13)
 		file.close()
-		if struct.unpack('13s', data)[0] == 'GIMP Gradient':
+		if data == 'GIMP Gradient':
 			return True
 
 	@staticmethod
 	def read(swatchbook,file):
 		item = Gradient(swatchbook)
-		file = open(file, 'U').readlines()[1:]
+		file = open(file, 'r', newline=None).readlines()[1:]
 		if file[0][:5] == 'Name:':
-			item.info.identifier = unicode(file[0].partition('Name: ')[2].strip(),'utf-8')
+			item.info.identifier = file[0].partition('Name: ')[2].strip()
 			file = file[1:]
 		if file[0].strip().isdigit():
 			nbstops = eval(file[0].strip())
 		else:
-			sys.stderr.write('expected an integer, got: '+file[0].strip().encode('utf-8'))
+			sys.stderr.write('expected an integer, got: '+file[0].strip())
 			return
 		file = file[1:]
 		segments = []
 		for i in range(nbstops):
 			segment = file[i].split()
-			segment = map(eval,segment)
+			segment = list(map(eval,segment))
 			if len(segment) == 13:
 				segment.append(0)
 				segment.append(0)
@@ -180,4 +179,4 @@ class gimp_ggr(SBCodec):
 
 		swatchbook.materials[item.info.identifier] = item
 		swatchbook.book.items.append(Swatch(item.info.identifier))
-				
+
