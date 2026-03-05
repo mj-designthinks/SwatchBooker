@@ -19,11 +19,12 @@
 #       MA 02110-1301, USA.
 #
 
+import os
 import re
 import tempfile
 from shutil import copy2
-from PIL import ImageQt
 
+from PIL import ImageQt
 from sbcommon import *
 
 NUM_RE = re.compile('([0-9]+)')
