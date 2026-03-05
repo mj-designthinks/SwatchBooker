@@ -75,6 +75,42 @@ Run a specific test file:
 uv run pytest tests/test_color_math.py -v
 ```
 
+## Building Desktop Installers
+
+The `packaging/` directory contains PyInstaller specs and build scripts for producing self-contained installers that require no Python or system libraries on the target machine.
+
+### macOS (.dmg)
+
+**Additional requirements:** `create-dmg` and `librsvg` (for converting the SVG icon to `.icns`)
+
+```sh
+brew install create-dmg librsvg
+uv pip install pyinstaller
+bash packaging/build-macos.sh
+# → dist/SwatchBooker.dmg
+```
+
+The script compiles translation catalogues (`.po` → `.mo`), generates `data/swatchbooker.icns` from the SVG source, runs PyInstaller, and wraps the resulting `.app` in a drag-to-install DMG.
+
+### Windows (.exe installer)
+
+**Additional requirements:** [Inno Setup 6](https://jrsoftware.org/isinfo.php), and `liblcms2.dll` copied to the repo root (available from the [LittleCMS website](https://www.littlecms.com/) or GIMP's Windows distribution).
+
+```bat
+uv pip install pyinstaller
+packaging\build-windows.bat
+REM → dist\SwatchBooker-Setup.exe
+```
+
+The script compiles translations, runs PyInstaller, then invokes Inno Setup to produce a signed installer with Start Menu and optional desktop shortcuts for both the editor and the batch converter.
+
+### What gets bundled
+
+- Python runtime and all dependencies (PySide6, Pillow, lcms2)
+- All 29 format codec modules (dynamically discovered at runtime)
+- `Fogra27L.icm` ICC profile for CMYK rendering
+- Compiled translation catalogues
+
 ## Features
 
 **Supported color models:** RGB, HSV, HSL, CMY, CMYK, nCLR, YIQ, CIE LAB, CIE LCH, CIE XYZ
