@@ -34,24 +34,30 @@ iconutil -c icns "$ICONSET" -o data/swatchbooker.icns
 rm -rf "$ICONSET"
 echo "    data/swatchbooker.icns created"
 
-echo "==> Running PyInstaller"
+echo "==> Running PyInstaller — SwatchBooker"
 pyinstaller packaging/swatchbooker.spec --noconfirm
 
-echo "==> Building DMG"
-# Stage the .app into a clean folder for create-dmg
+echo "==> Running PyInstaller — SBConvertor"
+pyinstaller packaging/sbconvertor.spec --noconfirm
+
+echo "==> Building DMG (both apps)"
+# Stage both .app bundles into a clean folder for create-dmg
 rm -rf dist/dmg-stage
 mkdir dist/dmg-stage
 cp -r dist/SwatchBooker.app dist/dmg-stage/
+cp -r dist/SBConvertor.app  dist/dmg-stage/
 
 create-dmg \
     --volname "SwatchBooker" \
     --volicon "data/swatchbooker.icns" \
     --window-pos 200 120 \
-    --window-size 600 400 \
+    --window-size 700 400 \
     --icon-size 100 \
-    --icon "SwatchBooker.app" 150 185 \
+    --icon "SwatchBooker.app" 120 185 \
     --hide-extension "SwatchBooker.app" \
-    --app-drop-link 450 185 \
+    --icon "SBConvertor.app"  330 185 \
+    --hide-extension "SBConvertor.app" \
+    --app-drop-link 560 185 \
     "dist/SwatchBooker.dmg" \
     "dist/dmg-stage/"
 
@@ -62,6 +68,6 @@ echo "Done: dist/SwatchBooker.dmg"
 echo ""
 echo "Smoke test:"
 echo "  1. Mount SwatchBooker.dmg"
-echo "  2. Drag SwatchBooker.app to Applications"
-echo "  3. Launch SwatchBooker"
-echo "  4. File > Open > data/sample.sbz — verify CMYK swatch renders"
+echo "  2. Drag both apps to Applications"
+echo "  3. Launch SwatchBooker — File > Open > data/sample.sbz, verify CMYK renders"
+echo "  4. Launch SBConvertor — verify batch converter opens"
