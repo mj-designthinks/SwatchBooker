@@ -2,7 +2,7 @@
 # build-macos.sh — Build SwatchBooker.dmg for macOS
 #
 # Requirements:
-#   brew install create-dmg little-cms2 uv
+#   brew install create-dmg little-cms2 uv gettext librsvg
 #   uv sync (or uv sync --extra dev)
 #   uv pip install pyinstaller
 #
@@ -17,7 +17,7 @@ cd "$REPO_ROOT"
 echo "==> Compiling translations (.po → .mo)"
 for po in translations/*.po; do
     mo="${po%.po}.mo"
-    python msgfmt.py -o "$mo" "$po"
+    msgfmt -o "$mo" "$po"
     echo "    $po → $mo"
 done
 
@@ -38,6 +38,11 @@ echo "==> Running PyInstaller"
 pyinstaller packaging/swatchbooker.spec --noconfirm
 
 echo "==> Building DMG"
+# Stage the .app into a clean folder for create-dmg
+rm -rf dist/dmg-stage
+mkdir dist/dmg-stage
+cp -r dist/SwatchBooker.app dist/dmg-stage/
+
 create-dmg \
     --volname "SwatchBooker" \
     --volicon "data/swatchbooker.icns" \
@@ -48,7 +53,9 @@ create-dmg \
     --hide-extension "SwatchBooker.app" \
     --app-drop-link 450 185 \
     "dist/SwatchBooker.dmg" \
-    "dist/SwatchBooker/"
+    "dist/dmg-stage/"
+
+rm -rf dist/dmg-stage
 
 echo ""
 echo "Done: dist/SwatchBooker.dmg"
