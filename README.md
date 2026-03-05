@@ -18,6 +18,8 @@ Three entry points are provided:
 
 ## Installation
 
+> **PySide6 compatibility:** PySide6 6.10.x has a broken platform plugin loader on macOS that prevents the app from starting (`Could not find the Qt platform plugin "cocoa"`). Use **PySide6 < 6.10** (the `pyproject.toml` and `uv.lock` in this repo already enforce this — `uv sync` will install 6.9.x automatically).
+
 **Requirements:** Python 3.10+, [uv](https://docs.astral.sh/uv/), Little CMS 2 (`liblcms2`)
 
 ### macOS (Homebrew)
