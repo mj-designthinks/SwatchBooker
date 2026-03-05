@@ -30,7 +30,7 @@ if len(args) == 0:
 for file in args:
 	skip = False
 	try:
-		print "Converting "+file
+		print("Converting "+file)
 		if options.websvc:
 			sb = SwatchBook(websvc=options.websvc,webid=file)
 		else:
@@ -44,11 +44,11 @@ for file in args:
 		dir = options.dir or ""
 		fileout = os.path.join(dir,filename)+"."+eval('codecs.'+options.output).ext[0]
 		while os.path.exists(fileout):
-			wtd = raw_input(fileout+" exists. [O]verwrite, [S]kip or [R]ename? ")
+			wtd = input(fileout+" exists. [O]verwrite, [S]kip or [R]ename? ")
 			if wtd.lower() == "o":
 				break
 			elif wtd.lower() == "r":
-				fileout = raw_input("New file name: ")
+				fileout = input("New file name: ")
 				if dir not in fileout:
 					fileout = os.path.join(dir,fileout)
 			elif wtd.lower() == "s":
@@ -57,5 +57,5 @@ for file in args:
 		if not skip:
 			try:
 				sb.write(options.output,fileout)
-			except IOError,e:
+			except IOError as e:
 				parser.error(e)
