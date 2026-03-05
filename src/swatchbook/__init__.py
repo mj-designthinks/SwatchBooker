@@ -22,6 +22,8 @@
 import os
 import sys
 import struct
+from copy import deepcopy
+from types import GeneratorType
 from datetime import *
 from .color import *
 from tempfile import mkdtemp
