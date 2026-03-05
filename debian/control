@@ -2,19 +2,24 @@ Source: swatchbooker
 Section: graphics
 Priority: optional
 Maintainer: Olivier Berten <olivier.berten@gmail.com>
-Build-Depends: cdbs, debhelper (>= 7), python (>= 2.5), python (<< 3.0), python-central
-XS-Python-Version: >= 2.5
-Standards-Version: 3.8.4
-Homepage: http://www.selapa.net/swatchbooker/
+Build-Depends: debhelper (>= 13), dh-python, python3-all, python3-setuptools
+Standards-Version: 4.6.2
+Homepage: https://github.com/mj-designthinks/SwatchBooker
+Rules-Requires-Root: no
 
 Package: swatchbooker
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-liblcms (>= 1.18), python-qt4 (>= 4.6), python-imaging (>= 1.1.7-2)
-XB-Python-Version: >= 2.5
-Description: Swatch edition and conversion utilities
- SwatchBooker is a swatch book editor and convertor. It includes 
- SwatchBooker Batch Convertor. 
+Depends: ${misc:Depends}, ${python3:Depends},
+ python3-pyside6 (>= 6.5),
+ python3-pil (>= 10.0),
+ liblcms2-2
+Description: Color swatch editor and format converter
+ SwatchBooker lets you open, inspect, convert, and save color palette
+ files from virtually every major design application. It displays swatches
+ with accurate color rendering via ICC profile support and Little CMS 2,
+ and can fetch palettes directly from online color systems such as
+ Pantone and Munsell.
  .
- This package provides the `swatchbook` python package.
- .
- More informations at http://www.selapa.net/swatchbooker/
+ This package provides the swatchbook Python 3 library as well as the
+ SwatchBooker GUI editor (swatchbooker) and the SBConvertor GUI batch
+ converter (sbconvertor).
