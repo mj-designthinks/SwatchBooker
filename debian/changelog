@@ -1,3 +1,15 @@
+swatchbooker (0.8-1) unstable; urgency=medium
+
+  * Port to Python 3 and PySide6 (Qt6); drop Python 2 / PyQt4 / lcms 1.x
+  * Migrate from lcms (1.x) to lcms2 (2.x)
+  * Replace setup.py/setup.cfg with pyproject.toml (setuptools backend)
+  * Update debian/control: require python3-pyside6, python3-pil, liblcms2-2
+  * Update debian/rules: switch from cdbs+python-distutils to dh+pybuild
+  * Bump debhelper compat level from 7 to 13
+  * Update Standards-Version to 4.6.2
+
+ -- Olivier Berten <olivier.berten@gmail.com>  Wed, 04 Mar 2026 00:00:00 +0000
+
 swatchbooker (0.7.3-0ppa1) lucid; urgency=low
 
   * LP:#609430
