@@ -63,14 +63,15 @@ def generate ():
     keys = sorted(MESSAGES.keys())
     # the keys are sorted in the .mo file
     offsets = []
-    ids = strs = ''
+    ids = strs = b''
     for _id in keys:
         # For each string, we need size and file offset.  Each string is NUL
         # terminated; the NUL does not count into the size.
-        offsets.append((len(ids), len(_id), len(strs), len(MESSAGES[_id])))
-        ids += _id + '\0'
-        strs += MESSAGES[_id] + '\0'
-    output = ''
+        id_bytes  = _id.encode('utf-8')
+        str_bytes = MESSAGES[_id].encode('utf-8')
+        offsets.append((len(ids), len(id_bytes), len(strs), len(str_bytes)))
+        ids  += id_bytes  + b'\0'
+        strs += str_bytes + b'\0'
     # The header is 7 32-bit unsigned integers.  We don't use hash tables, so
     # the keys start right after the index tables.
     # translated string.
