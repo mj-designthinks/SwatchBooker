@@ -7,3 +7,10 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+
+# macOS metadata
+.DS_Store
+
+# Generated build artefacts
+translations/*.mo
+data/swatchbooker.icns
