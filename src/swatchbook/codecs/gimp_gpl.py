@@ -2,24 +2,23 @@
 # coding: utf-8
 #
 #       Copyright 2008 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class gimp_gpl(SBCodec):
@@ -27,19 +26,19 @@ class gimp_gpl(SBCodec):
 	ext = ('gpl',)
 	@staticmethod
 	def test(file):
-		file = open(file)
+		file = open(file, 'r', newline=None)
 		data = file.read(12)
 		file.close()
-		if struct.unpack('12s', data)[0] == 'GIMP Palette':
+		if data == 'GIMP Palette':
 			return True
 		else:
 			return False
 
 	@staticmethod
 	def read(swatchbook,file):
-		file = open(file, 'U').readlines()[1:]
+		file = open(file, 'r', newline=None).readlines()[1:]
 		if file[0][:5] == 'Name:':
-			swatchbook.info.title = unicode(file[1].partition('Name: ')[2].strip(),'utf-8')
+			swatchbook.info.title = file[1].partition('Name: ')[2].strip()
 			file = file[1:]
 		if file[0][:8] == 'Columns:':
 			cols = int(file[0].partition('Columns: ')[2].strip()) # max 64 in Gimp 2.6
@@ -56,7 +55,7 @@ class gimp_gpl(SBCodec):
 					item = Color(swatchbook)
 					item.values[('RGB',False)] = [int(entry[0])/0xFF,int(entry[1])/0xFF,int(entry[2])/0xFF]
 					if len(entry) > 3 and entry[3].strip() not in ('Untitled','Sans titre'): # other languages to be added
-						id = unicode(entry[3].strip(),'utf-8')
+						id = entry[3].strip()
 					if not id or id == '':
 						id = str(item.toRGB8())
 					if id in swatchbook.materials:
@@ -70,9 +69,9 @@ class gimp_gpl(SBCodec):
 					item.info.identifier = id
 					swatchbook.materials[id] = item
 					swatchbook.book.items.append(Swatch(id))
-				else:	
-					sys.stderr.write('incorrect line: '+line.encode('utf-8'))
-				
+				else:
+					sys.stderr.write('incorrect line: '+line)
+
 	@staticmethod
 	def write(swatchbook):
 		gpl = 'GIMP Palette\n'
@@ -81,9 +80,9 @@ class gimp_gpl(SBCodec):
 		if swatchbook.book.display['columns']:
 			gpl += 'Columns: '+str(swatchbook.book.display['columns'])+'\n'
 		gpl += '#'
-		
+
 		gpl += gimp_gpl.writem(swatchbook,swatchbook.book.items)
-		
+
 		return gpl.encode('utf-8')
 
 	@staticmethod
