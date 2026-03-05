@@ -2,24 +2,23 @@
 # coding: utf-8
 #
 #       Copyright 2008 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class corel_cpl(SBCodec):
@@ -30,7 +29,7 @@ class corel_cpl(SBCodec):
 		file = open(file,'rb')
 		data = file.read(2)
 		file.close()
-		if data in ('\xcc\xbc','\xcc\xdc','\xcd\xbc','\xcd\xdc','\xdd\xdc','\xdc\xdc','\xcd\xdd'):
+		if data in (b'\xcc\xbc', b'\xcc\xdc', b'\xcd\xbc', b'\xcd\xdc', b'\xdd\xdc', b'\xdc\xdc', b'\xcd\xdd'):
 			return True
 		else:
 			return False
@@ -40,12 +39,12 @@ class corel_cpl(SBCodec):
 		spot=False
 		file = open(file,'rb')
 		version = file.read(2)
-		if version == '\xdc\xdc': #custom palettes
+		if version == b'\xdc\xdc': #custom palettes
 			length = struct.unpack('B',file.read(1))[0]
 			if length > 0:
-				swatchbook.info.title = unicode(struct.unpack(str(length)+'s',file.read(length))[0],'latin1')
+				swatchbook.info.title = struct.unpack(str(length)+'s',file.read(length))[0].decode('latin1')
 			nbcolors = struct.unpack('<H',file.read(2))[0]
-		elif version in ('\xcc\xbc','\xcc\xdc'):
+		elif version in (b'\xcc\xbc', b'\xcc\xdc'):
 			nbcolors = struct.unpack('<H',file.read(2))[0]
 		else:
 			nbheaders = struct.unpack('<L',file.read(4))[0]
@@ -57,10 +56,10 @@ class corel_cpl(SBCodec):
 			file.seek(headers[0], 0)
 			length = struct.unpack('B',file.read(1))[0]
 			if length > 0:
-				if version == '\xcd\xdc':
-					swatchbook.info.title = unicode(struct.unpack(str(length)+'s',file.read(length))[0],'latin1')
+				if version == b'\xcd\xdc':
+					swatchbook.info.title = struct.unpack(str(length)+'s',file.read(length))[0].decode('latin1')
 				else:
-					swatchbook.info.title = unicode(struct.unpack(str(length*2)+'s',file.read(length*2))[0],'utf_16_le')
+					swatchbook.info.title = struct.unpack(str(length*2)+'s',file.read(length*2))[0].decode('utf_16_le')
 			# Header 1: Palette Type
 			file.seek(headers[1], 0)
 			type = struct.unpack('<H',file.read(2))[0]
@@ -89,7 +88,7 @@ class corel_cpl(SBCodec):
 					swatchbook.book.display['rows'] = 7
 			if type in (3,8,9,10,11,16,17,18,20,21,22,23,26,27,28,29,30,31,32,35,36,37):
 				spot = True
-		if version in ('\xcd\xbc','\xcd\xdc','\xcd\xdd') and type < 38 and type not in(5,16):
+		if version in (b'\xcd\xbc', b'\xcd\xdc', b'\xcd\xdd') and type < 38 and type not in(5,16):
 			long = True
 		else:
 			long = False
@@ -217,11 +216,11 @@ class corel_cpl(SBCodec):
 						sys.stderr.write('unknown color model ['+str(model2)+']\n')
 			length = struct.unpack('B',file.read(1))[0]
 			if length > 0:
-				if version in ('\xdc\xdc','\xcc\xdc') or (version == '\xcd\xdc' and type not in (16,)):
-					title = unicode(struct.unpack(str(length)+'s',file.read(length))[0],'latin1')
+				if version in (b'\xdc\xdc', b'\xcc\xdc') or (version == b'\xcd\xdc' and type not in (16,)):
+					title = struct.unpack(str(length)+'s',file.read(length))[0].decode('latin1')
 				else:
-					title = unicode(struct.unpack(str(length*2)+'s',file.read(length*2))[0],'utf_16_le')
-			if version == '\xcd\xdd':
+					title = struct.unpack(str(length*2)+'s',file.read(length*2))[0].decode('utf_16_le')
+			if version == b'\xcd\xdd':
 				row[i], col[i] = struct.unpack('<2L',file.read(8))
 				file.seek(4, 1)
 			if spot:
@@ -235,22 +234,22 @@ class corel_cpl(SBCodec):
 				if title and title > '':
 					id = title
 				else:
-					id = idfromvals(item.values[item.values.keys()[0]])
+					id = idfromvals(item.values[list(item.values.keys())[0]])
 			else:
 				if title and title > '':
 					item.info.title = title
 			if id in swatchbook.materials:
-				if item.values[item.values.keys()[0]] == swatchbook.materials[id].values[swatchbook.materials[id].values.keys()[0]]:
+				if item.values[list(item.values.keys())[0]] == swatchbook.materials[id].values[list(swatchbook.materials[id].values.keys())[0]]:
 					swatchbook.book.items.append(Swatch(id))
 					continue
 				else:
 					sys.stderr.write('duplicated id: '+id+'\n')
 					if item.info.title == '':
 						item.info.title = id
-					id = id+idfromvals(item.values[item.values.keys()[0]])
+					id = id+idfromvals(item.values[list(item.values.keys())[0]])
 			item.info.identifier = id
 			swatchbook.materials[id] = item
 			swatchbook.book.items.append(Swatch(id))
-			
+
 		file.close()
 
