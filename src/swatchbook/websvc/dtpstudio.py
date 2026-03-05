@@ -32,9 +32,9 @@ class dtpstudio(WebSvc):
 	url = "http://www.dtpstudio.de/colordesigner/"
 
 	def level0(self):
-		page = urlopen(self.url+"popup_d.htm").read()
+		page = urlopen(self.url+"popup_d.htm").read().decode('utf-8', errors='replace')
 		namelist = page.split('<option value="-1" selected>Farbsystem auswählen...</option>')[1].split('</option>\n            </select>')[0].strip().split('</option>')
-		page = urlopen(self.url+"Scripts/main.js").read()
+		page = urlopen(self.url+"Scripts/main.js").read().decode('utf-8', errors='replace')
 		syslist = page.split("var targetSystems = new Array('")[1].split("');",1)[0].split("','")
 		systems = SortedDict()
 		for i in range(len(namelist)):
@@ -63,16 +63,13 @@ class dtpstudio(WebSvc):
 		return systems
 
 	def read(self,swatchbook,system):
-		page = urlopen(self.url+"ColorSystems/"+system).readlines()
+		page = [l.decode('utf-8', errors='replace') for l in urlopen(self.url+"ColorSystems/"+system).readlines()]
 		swatchbook.info.title = page[1].split('// ...::: ')[1].split(' :::...')[0]
 		for line in page[2:]:
 			line = eval(line.split('completeColor')[1].split(";")[0].replace('false','False').replace('true','True'))
 			item = Color(swatchbook)
 			item.usage.add('spot')
-			try:
-				id = unicode(line[4],'utf-8')
-			except UnicodeDecodeError:
-				id = unicode(line[4],'latin1')
+			id = str(line[4])
 			if line[0] == 0:
 				item.values[('Lab',False)] = [line[1],line[2],line[3]]
 			elif line[0] == 1:
@@ -80,13 +77,13 @@ class dtpstudio(WebSvc):
 			elif line[0] == 2:
 				item.values[('sRGB',False)] = [line[1],line[2],line[3]]
 			if id in swatchbook.materials:
-				if item.values[item.values.keys()[0]] == swatchbook.materials[id].values[swatchbook.materials[id].values.keys()[0]]:
+				if item.values[next(iter(item.values))] == swatchbook.materials[id].values[next(iter(swatchbook.materials[id].values))]:
 					swatchbook.book.items.append(Swatch(id))
 					continue
 				else:
 					sys.stderr.write('duplicated id: '+id+'\n')
 					item.info.title = id
-					id = id+idfromvals(item.values[item.values.keys()[0]])
+					id = id+idfromvals(item.values[next(iter(item.values))])
 			item.info.identifier = id
 			swatchbook.materials[id] = item
 			swatchbook.book.items.append(Swatch(id))
