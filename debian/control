@@ -2,7 +2,7 @@ Source: swatchbooker
 Section: graphics
 Priority: optional
 Maintainer: Olivier Berten <olivier.berten@gmail.com>
-Build-Depends: debhelper (>= 13), dh-python, python3-all, python3-setuptools
+Build-Depends: debhelper (>= 13), dh-python, python3-all, python3-setuptools, gettext
 Standards-Version: 4.6.2
 Homepage: https://github.com/mj-designthinks/SwatchBooker
 Rules-Requires-Root: no

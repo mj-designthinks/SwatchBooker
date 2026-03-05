@@ -21,5 +21,5 @@ override_dh_auto_install:
 	for po in translations/*.po; do \
 	    lang=$$(basename $$po .po); \
 	    install -d debian/swatchbooker/usr/share/locale/$$lang/LC_MESSAGES; \
-	    python3 msgfmt.py -o debian/swatchbooker/usr/share/locale/$$lang/LC_MESSAGES/swatchbooker.mo $$po; \
+	    msgfmt -o debian/swatchbooker/usr/share/locale/$$lang/LC_MESSAGES/swatchbooker.mo $$po; \
 	done
