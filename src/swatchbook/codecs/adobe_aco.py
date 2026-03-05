@@ -2,24 +2,23 @@
 # coding: utf-8
 #
 #       Copyright 2008 Olivier Berten <olivier.berten@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 from swatchbook.codecs import *
 
 class adobe_aco(SBCodec):
@@ -72,22 +71,22 @@ class adobe_aco(SBCodec):
 				file.seek(6, 1)
 			else:
 				sys.stderr.write('unsupported color model ['+ColorModels[model]+']\n')
-				id = file.read(7).split('\x00', 1)[0].strip()
+				id = file.read(7).split(b'\x00', 1)[0].strip().decode('latin-1')
 				file.seek(1, 1)
 			if version == 2:
 				length = struct.unpack('>L',file.read(4))[0]
 				if length > 0:
-					id = unicode(struct.unpack(str(length*2)+'s',file.read(length*2))[0],'utf_16_be').split('\x00', 1)[0]
+					id = struct.unpack(str(length*2)+'s',file.read(length*2))[0].decode('utf_16_be').split('\x00', 1)[0]
 			if version == 0: # Photoshop 6
 				length = struct.unpack('B',file.read(1))[0]
 				if length > 0:
-					id = file.read(length)
+					id = file.read(length).decode('latin-1')
 			if not id and len(item.values) > 0:
-				id = idfromvals(item.values[item.values.keys()[0]])
+				id = idfromvals(item.values[list(item.values.keys())[0]])
 			elif not id:
 				id = 'col'+str(i)
 			if id in swatchbook.materials:
-				if (len(item.values) == 0 and len(swatchbook.materials[id].values) == 0) or (item.values[item.values.keys()[0]] == swatchbook.materials[id].values[swatchbook.materials[id].values.keys()[0]]):
+				if (len(item.values) == 0 and len(swatchbook.materials[id].values) == 0) or (item.values[list(item.values.keys())[0]] == swatchbook.materials[id].values[list(swatchbook.materials[id].values.keys())[0]]):
 					swatchbook.book.items.append(Swatch(id))
 					continue
 				else:
