@@ -19,15 +19,14 @@
 #       MA 02110-1301, USA.
 #
 
-from __future__ import division
 import os
 import sys
 import struct
 from datetime import *
-from color import *
+from .color import *
 from tempfile import mkdtemp
 from shutil import rmtree
-from cStringIO import StringIO
+from io import BytesIO
 from PIL import Image, ImageDraw, ImageCms
 from math import pi, log, sin, sqrt
 
@@ -53,7 +52,7 @@ class SortedDict(dict):
 			data = list(data)
 		super(SortedDict, self).__init__(data)
 		if isinstance(data, dict):
-			self.keyOrder = data.keys()
+			self.keyOrder = list(data.keys())
 		else:
 			self.keyOrder = []
 			seen = set()
@@ -64,7 +63,7 @@ class SortedDict(dict):
 
 	def __deepcopy__(self, memo):
 		return self.__class__([(key, deepcopy(value, memo))
-							   for key, value in self.iteritems()])
+							   for key, value in self.items()])
 
 	def __setitem__(self, key, value):
 		if key not in self:
@@ -93,7 +92,7 @@ class SortedDict(dict):
 		return result
 
 	def items(self):
-		return zip(self.keyOrder, self.values())
+		return list(zip(self.keyOrder, self.values()))
 
 	def iteritems(self):
 		for key in self.keyOrder:
@@ -106,14 +105,14 @@ class SortedDict(dict):
 		return iter(self.keyOrder)
 
 	def values(self):
-		return map(self.__getitem__, self.keyOrder)
+		return [self[k] for k in self.keyOrder]
 
 	def itervalues(self):
 		for key in self.keyOrder:
 			yield self[key]
 
 	def update(self, dict_):
-		for k, v in dict_.iteritems():
+		for k, v in dict_.items():
 			self[k] = v
 
 	def setdefault(self, key, default):
@@ -178,9 +177,9 @@ class Info(object):
 		self.type = 'http://purl.org/dc/dcmitype/Dataset'
 		self.date = False
 		for dc in self.dc:
-			exec('self.' + dc + ' = ""')
+			setattr(self, dc, "")
 			if self.dc[dc][0]:
-				exec('self.' + dc + '_l10n = {}')
+				setattr(self, dc + '_l10n', {})
 
 		self.version = ""
 
@@ -262,14 +261,7 @@ class SwatchBook(object):
 		if codec:
 			self.codec = codec
 			eval('codecs.' + codec).read(self, file)
-			if sys.platform == 'win32':
-				encoding = "UTF-8"
-			else:
-				encoding = sys.getfilesystemencoding()
-			if encoding == 'UTF-8' and isinstance(file, unicode):
-				filename = os.path.splitext(os.path.basename(file))[0]
-			else:
-				filename = os.path.splitext(os.path.basename(file))[0].decode(encoding)
+			filename = os.path.splitext(os.path.basename(file))[0]
 			if self.info.title == '':
 				self.info.title = filename.replace('_', ' ')
 		else:
@@ -280,7 +272,7 @@ class SwatchBook(object):
 		if format in codecs.writes:
 			codec = eval('codecs.' + format)
 			if output == None:
-				print codec.write(self)
+				print(codec.write(self))
 			else:
 				content = codec.write(self)
 				# TODO check if writable
@@ -288,7 +280,7 @@ class SwatchBook(object):
 				bookfile.write(content)
 				bookfile.close()
 		else:
-			raise FileFormatError, 'unsupported output format'
+			raise FileFormatError('unsupported output format')
 
 class Group(object):
 	def __init__(self, title="", parent=None):
@@ -453,7 +445,7 @@ class Pattern(object):
 			image = Image.merge(image.mode[:-1], bands[:-1])
 		sRGB = ImageCms.createProfile("sRGB")
 		if 'icc_profile' in image.info:
-			inputProfile = ImageCms.ImageCmsProfile(StringIO(image.info['icc_profile']))
+			inputProfile = ImageCms.ImageCmsProfile(BytesIO(image.info['icc_profile']))
 		else:
 			if image.mode == "CMYK":
 				inputProfile = (dirpath(__file__) or ".") + "/Fogra27L.icm"
